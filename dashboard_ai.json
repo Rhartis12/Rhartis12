@@ -1,51 +1,65 @@
 {
   "TSLA": {
-    "sentiment": "Bullish 🟢",
-    "title": "긍정적 감마 유지, 변동성 완화 기대",
-    "body": "Net GEX 변화량은 0.0으로 관측되었으나, Net GEX가 양수(3,922만)를 유지하며 변동성 완화 및 상승 지지력을 기대할 수 있습니다. 콜 월 500달러, 풋 월 400달러는 각각 주요 저항과 지지 레벨로 작용합니다.",
+    "sentiment": "Neutral 🟡",
+    "title": "Gamma Pivot at $450, Volatility Dampened",
+    "body": "TSLA is trading precisely at the $450 strike, which exhibits significant gamma interest on both call and put sides, acting as a pivotal point. Net GEX is positive, indicating dealers are long gamma, which should contribute to price stability and range-bound trading. The primary Put Wall is at $400, offering strong support, while the Call Wall at $500 acts as resistance. No significant change in Net GEX from yesterday, maintaining the current structure.",
     "expiry": "2026-01-16",
     "price": 449.72
   },
   "SPY": {
-    "sentiment": "Bearish 🔴",
-    "title": "부정적 감마 지속, 변동성 확대 우려",
-    "body": "Net GEX 변화량은 0.0으로 관측되었으나, Net GEX가 음수(-1.92억)를 유지하며 변동성 확대 및 하락 압력 우려가 있습니다. 콜 월 700달러, 풋 월 595달러는 주요 저항과 지지 레벨을 형성합니다.",
+    "sentiment": "Volatile ⚠️",
+    "title": "Short Gamma Amplifies Volatility; $680 Support Critical",
+    "body": "SPY is characterized by a substantially negative Net GEX, indicating dealers are short gamma. This market regime is conducive to amplified price movements and increased volatility. Price is currently at $681.92, trading just above a massive Put GEX strike at $680, which functions as immediate support. A break below $680 could trigger an accelerated move lower. The next significant Call GEX is at $690, presenting overhead resistance. The broader Call Wall is at $700, with the Put Wall at $595. No significant change in Net GEX from yesterday, maintaining the current structure.",
     "expiry": "2026-01-16",
     "price": 681.92
   },
   "QQQ": {
-    "sentiment": "Bearish 🔴",
-    "title": "부정적 감마 지속, 변동성 확대 우려",
-    "body": "Net GEX 변화량은 0.0으로 관측되었으나, Net GEX가 음수(-1.14억)를 유지하며 변동성 확대 및 하락 압력 우려가 있습니다. 콜 월 650달러, 풋 월 600달러는 주요 저항과 지지 레벨을 형성합니다.",
+    "sentiment": "Volatile ⚠️",
+    "title": "Short Gamma Fuels Swings; $610-$620 Key Range",
+    "body": "QQQ is operating under a significant negative Net GEX, implying dealers are short gamma and contributing to a higher volatility environment. The price of $614.31 sits within a tight range defined by robust Put GEX at $610 as immediate support and substantial Call GEX at $620 as resistance. A break of either level could see accelerated movement. The Put Wall at $600 remains a critical downside anchor, while the Call Wall at $650 is a more distant upside barrier. No significant change in Net GEX from yesterday, maintaining the current structure.",
     "expiry": "2026-01-16",
     "price": 614.31
   },
   "NVDA": {
-    "sentiment": "Bullish 🟢",
-    "title": "긍정적 감마 유지, 변동성 완화 기대",
-    "body": "Net GEX 변화량은 0.0으로 관측되었으나, Net GEX가 양수(1.99억)를 유지하며 변동성 완화 및 상승 지지력을 기대할 수 있습니다. 콜 월 200달러, 풋 월 160달러는 각각 주요 저항과 지지 레벨로 작용합니다.",
+    "sentiment": "Neutral 🟡",
+    "title": "Long Gamma Stabilizes; $190-$200 Resistance Zone",
+    "body": "NVDA exhibits a substantial positive Net GEX, signifying that dealers are long gamma. This environment typically dampens volatility and supports range-bound price action. The current price of $186.5 is positioned between key gamma strikes, with significant resistance building at $190 and the Call Wall at $200. Primary support levels are seen around $185 and $180, with the Put Wall at $160 providing robust downside protection. No significant change in Net GEX from yesterday, maintaining the current structure.",
     "expiry": "2026-01-16",
     "price": 186.5
   },
   "PLTR": {
-    "sentiment": "Bullish 🟢",
-    "title": "긍정적 감마 유지, 변동성 완화 기대",
-    "body": "Net GEX 변화량은 0.0으로 관측되었으나, Net GEX가 양수(1,546만)를 유지하며 변동성 완화 및 상승 지지력을 기대할 수 있습니다. 콜 월 200달러, 풋 월 170달러는 각각 주요 저항과 지지 레벨로 작용합니다.",
+    "sentiment": "Neutral 🟡",
+    "title": "Long Gamma Supports Stability; $180 Gamma Pivot",
+    "body": "PLTR shows a positive Net GEX, indicating dealers are long gamma, which tends to stabilize prices and reduce volatility. The stock is currently priced at $177.75, approaching a significant gamma pivot at the $180 strike, where both call and put GEX are concentrated, suggesting it will be a contested level. The Put Wall at $170 offers robust support, while the Call Wall at $200 presents a significant upside barrier. No significant change in Net GEX from yesterday, maintaining the current structure.",
     "expiry": "2026-01-16",
     "price": 177.75
   },
   "IWM": {
     "sentiment": "Bearish 🔴",
-    "title": "부정적 감마 지속, 변동성 확대 우려",
-    "body": "Net GEX 변화량은 0.0으로 관측되었으나, Net GEX가 음수(-5.05억)를 유지하며 변동성 확대 및 하락 압력 우려가 있습니다. 콜 월 265달러, 풋 월 242달러는 주요 저항과 지지 레벨을 형성합니다.",
+    "title": "Extreme Short Gamma; $242 Put Wall Critical Support",
+    "body": "IWM is characterized by an exceptionally large negative Net GEX, indicating dealers are in a deeply short gamma position. This sets the stage for potentially extreme volatility and amplified price movements. The current price of $246.16 is hovering just above the critical Put Wall at $242, which represents a significant support level. A break below $242 could trigger a sharp downside acceleration. The $245 and $250 strikes also show substantial gamma interest, acting as pivot points, with overhead resistance at $250 and the Call Wall at $265. No significant change in Net GEX from yesterday, maintaining the current structure.",
     "expiry": "2026-01-16",
     "price": 246.16
   },
   "SOXL": {
     "sentiment": "Bullish 🟢",
-    "title": "긍정적 감마 유지, 좁은 변동성 예상",
-    "body": "Net GEX 변화량은 0.0으로 관측되었으나, Net GEX가 양수(1,165만)를 유지하며 변동성 완화 및 상승 지지력을 기대할 수 있습니다. 콜 월과 풋 월이 모두 40달러에 형성되어 강력한 가격 수렴 및 좁은 변동성 구간이 예상됩니다.",
+    "title": "Bullish Breakout; $40 Becomes Strong Gamma Support",
+    "body": "SOXL exhibits a positive Net GEX, indicating dealers are long gamma and will likely dampen volatility. The stock is currently trading at $42.03, decisively above its Call Wall and Put Wall, both located at $40.0. This suggests a significant bullish breakout, with $40.0 now acting as a formidable gamma support level, reinforced by both large positive call GEX and negative put GEX concentrations. Resistance from put GEX is noted at $42.0. No significant change in Net GEX from yesterday, maintaining the current structure.",
     "expiry": "2026-01-16",
     "price": 42.03
+  },
+  "EWY": {
+    "sentiment": "Neutral 🟡",
+    "title": "Long Gamma Stabilizes; Consolidation Towards $100 Call Wall",
+    "body": "EWY displays a positive Net GEX, signifying dealers are long gamma and likely to dampen volatility. The current price of $97.22 positions it between a strong Put GEX at $95.0, acting as immediate support, and a significant Call GEX at $100.0, which also serves as the Call Wall. The Put Wall at $80.0 provides a lower bound for major support. Expect consolidation within this $95-$100 range, with $100 as an upside target. No significant change in Net GEX from yesterday, maintaining the current structure.",
+    "expiry": "2026-01-16",
+    "price": 97.22
+  },
+  "IBIT": {
+    "sentiment": "Neutral 🟡",
+    "title": "Long Gamma Dampens Volatility; $50 a Key Gamma Pivot",
+    "body": "IBIT's Net GEX is positive, suggesting dealers are long gamma, which typically leads to dampened volatility and more stable price action. The current price of $49.65 is directly challenging the $50.0 strike, which exhibits substantial gamma interest from both calls and puts, marking it as a critical pivot point. The Put Wall at $43.0 provides firm support, while the Call Wall at $55.0 is the primary resistance. No significant change in Net GEX from yesterday, maintaining the current structure.",
+    "expiry": "2026-01-16",
+    "price": 49.65
   }
 }
