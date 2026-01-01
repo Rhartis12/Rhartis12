@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSCC Pro Analyst Deck</title>
+    <title>OSCC Alpha Deck</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- 기본 테마 --- */
@@ -24,7 +24,7 @@
         .ai-card { background: linear-gradient(180deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,1) 100%); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 30px; }
         .ai-title { font-size: 18px; font-weight: bold; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
         .ai-body { font-size: 15px; line-height: 1.6; color: #cbd5e1; white-space: pre-line; }
-        .badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #334155; color: white; }
+        .badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #334155; color: white; margin-left: auto; }
 
         /* 차트 */
         .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 20px; height: 500px; position: relative; }
@@ -43,7 +43,7 @@
         .col-call { text-align: right; color: #cbd5e1; } .col-put { text-align: left; color: #cbd5e1; }
         .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; }
         .val-call { color: var(--call); } .val-put { color: var(--put); }
-        .atm-row { background-color: rgba(255, 255, 255, 0.05); border-left: 2px solid yellow; border-right: 2px solid yellow; }
+        .atm-row { background-color: rgba(255, 215, 0, 0.1); border: 2px solid #ffd700; } /* ATM 강조 */
     </style>
 </head>
 <body>
@@ -70,7 +70,7 @@
             <div id="chartGEX" style="width:100%; height:100%;"></div>
         </div>
         <div class="chart-box">
-            <div class="chart-title">🧱 Open Interest Walls</div>
+            <div class="chart-title">🧱 Open Interest Walls (OI)</div>
             <div id="chartOI" style="width:100%; height:100%;"></div>
         </div>
     </div>
@@ -124,14 +124,15 @@
     function renderDashboard(ticker, expiry) {
         const aiInfo = aiData[ticker];
         let currentPrice = 0;
+        
+        // AI 데이터 연동 확인
         if (aiInfo) {
-            // ⭐ undefined 문제 해결: AI 데이터에서 만기일 가져옴
-            document.getElementById('aiExpiryBadge').innerText = `AI Target: ${aiInfo.expiry || 'N/A'}`;
+            document.getElementById('aiExpiryBadge').innerText = `Target: ${aiInfo.expiry || 'N/A'}`;
             document.getElementById('aiBody').innerHTML = `<strong>[${aiInfo.sentiment}] ${aiInfo.title}</strong>\n\n${aiInfo.body}`;
             currentPrice = aiInfo.price;
         } else {
             document.getElementById('aiExpiryBadge').innerText = `Target: --`;
-            document.getElementById('aiBody').innerText = "No AI analysis available.";
+            document.getElementById('aiBody').innerText = "AI Analysis not available for this ticker.";
         }
 
         const data = rawData.filter(d => d.ticker === ticker && d.expiry === expiry);
@@ -142,54 +143,63 @@
     }
 
     function drawCharts(data, currentPrice) {
-        // 1. 데이터 필터링 (GEX 상위 30개 행사가만 표시 - 노이즈 제거)
+        // 1. 차트용 데이터 필터링 (GEX 절댓값 기준 상위 40개 행사가만 - 노이즈 제거)
         const strikeMap = new Map();
         data.forEach(d => {
-            if (!strikeMap.has(d.strike)) strikeMap.set(d.strike, 0);
-            strikeMap.set(d.strike, strikeMap.get(d.strike) + Math.abs(d.gex_notional));
+            const val = Math.abs(d.gex_notional);
+            strikeMap.set(d.strike, (strikeMap.get(d.strike) || 0) + val);
         });
-        const topStrikes = Array.from(strikeMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 30).map(e => e[0]);
+        // 상위 40개 행사가 추출
+        const topStrikes = Array.from(strikeMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 40).map(e => e[0]);
         const filteredData = data.filter(d => topStrikes.includes(d.strike));
 
         const calls = filteredData.filter(d => d.type === 'call').sort((a,b) => a.strike - b.strike);
         const puts = filteredData.filter(d => d.type === 'put').sort((a,b) => a.strike - b.strike);
 
-        // 2. 공통 레이아웃 (가로형, 현재가 점선 추가)
         const layoutBase = {
             barmode: 'relative', paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
             font: {color: '#94a3b8'}, margin: {t:40, b:30, l:60, r:20},
             xaxis: {gridcolor: '#334155', zerolinecolor: '#fff'},
-            yaxis: {gridcolor: '#334155', type: 'category'}, // Y축을 카테고리로 설정하여 간격 일정하게
-            // ⭐ 현재가 점선 추가 ⭐
+            yaxis: {gridcolor: '#334155', type: 'category'},
+            // 현재가 점선
             shapes: currentPrice > 0 ? [{
                 type: 'line', y0: 0, y1: 1, yref: 'paper', x0: currentPrice, x1: currentPrice, xref: 'x',
                 line: { color: 'yellow', width: 2, dash: 'dash' }
             }] : []
         };
 
-        // GEX Chart (가로형)
+        // GEX Chart
         Plotly.newPlot('chartGEX', [
             { x: puts.map(d=>d.gex_notional), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put GEX', marker:{color:'#ef4444'} },
             { x: calls.map(d=>d.gex_notional), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call GEX', marker:{color:'#10b981'} }
-        ], { ...layoutBase, xaxis: { ...layoutBase.xaxis, title: 'Net Gamma Exposure ($)' } }, {responsive: true, displayModeBar: false});
+        ], { ...layoutBase, xaxis: { ...layoutBase.xaxis, title: 'Net Gamma ($)' } }, {responsive: true, displayModeBar: false});
 
-        // OI Chart (가로형)
+        // OI Chart (변수명 수정됨: calls/puts 사용)
         Plotly.newPlot('chartOI', [
-            { x: putsAll.map(d=>d.openInterest), y: putsAll.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put OI', marker:{color:'#dc2626', opacity:0.7} },
-            { x: callsAll.map(d=>d.openInterest), y: callsAll.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call OI', marker:{color:'#059669', opacity:0.7} }
+            { x: puts.map(d=>d.openInterest), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put OI', marker:{color:'#dc2626', opacity:0.7} },
+            { x: calls.map(d=>d.openInterest), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call OI', marker:{color:'#059669', opacity:0.7} }
         ], { ...layoutBase, xaxis: { ...layoutBase.xaxis, title: 'Open Interest' } }, {responsive: true, displayModeBar: false});
     }
 
     function drawOptionChain(data, currentPrice) {
         const tbody = document.querySelector('#chainTable tbody'); tbody.innerHTML = '';
+        
+        // 전체 행사가 표시 (필터링 없이)
         const strikeMap = {};
         data.forEach(d => { if(!strikeMap[d.strike]) strikeMap[d.strike] = {call:null, put:null}; strikeMap[d.strike][d.type] = d; });
         const strikes = Object.keys(strikeMap).map(Number).sort((a,b) => a - b);
+        
+        // ATM 찾기
         let closest = strikes[0], minDiff = Math.abs(currentPrice - closest);
         strikes.forEach(k => { const diff = Math.abs(currentPrice - k); if(diff < minDiff) { minDiff = diff; closest = k; } });
-        const num = (n) => n ? n.toLocaleString() : '-', gex = (n) => n ? (n/1000).toFixed(0)+'k' : '-', iv = (n) => n ? (n*100).toFixed(1)+'%' : '-';
+
+        const num = (n) => n ? n.toLocaleString() : '-';
+        const gex = (n) => n ? (n/1000).toFixed(0)+'k' : '-';
+        const iv = (n) => n ? (n*100).toFixed(1)+'%' : '-';
+
         strikes.forEach(k => {
-            const row = document.createElement('tr'); if(k === closest) row.className = 'atm-row';
+            const row = document.createElement('tr'); 
+            if(k === closest) row.className = 'atm-row'; // ATM 강조 클래스
             const c = strikeMap[k].call || {}, p = strikeMap[k].put || {};
             row.innerHTML = `<td class="col-call val-call">${gex(c.gex_notional)}</td><td class="col-call">${num(c.openInterest)}</td><td class="col-call">${num(c.volume)}</td><td class="col-call">${iv(c.impliedVolatility)}</td><td class="col-strike">${k}</td><td class="col-put">${iv(p.impliedVolatility)}</td><td class="col-put">${num(p.volume)}</td><td class="col-put">${num(p.openInterest)}</td><td class="col-put val-put">${gex(p.gex_notional)}</td>`;
             tbody.appendChild(row);
