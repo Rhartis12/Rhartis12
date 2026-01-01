@@ -2,35 +2,103 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSCC Command Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OSCC Alpha Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        .controls { display: flex; gap: 15px; }
-        select { background: #1e293b; color: #fff; border: 1px solid #475569; padding: 8px 16px; border-radius: 6px; font-size: 14px; }
+        /* 기본 설정 */
+        body { 
+            background-color: #0f172a; 
+            color: #e2e8f0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; 
+            padding: 15px; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 헤더 & 컨트롤 */
+        .header { 
+            display: flex; 
+            flex-direction: column; /* 모바일: 세로 배치 */
+            gap: 15px; 
+            margin-bottom: 25px; 
+            border-bottom: 1px solid #334155; 
+            padding-bottom: 15px; 
+        }
+        h1 { margin: 0; font-size: 24px; color: #38bdf8; }
+
+        .controls { 
+            display: flex; 
+            gap: 10px; 
+            width: 100%; 
+        }
+        select { 
+            background: #1e293b; 
+            color: #fff; 
+            border: 1px solid #475569; 
+            padding: 12px; 
+            border-radius: 8px; 
+            font-size: 16px; /* 모바일 터치 편하게 폰트 키움 */
+            flex: 1; /* 화면 꽉 차게 */
+        }
+
+        /* 📱 핵심: 반응형 그리드 레이아웃 */
+        .dashboard-grid { 
+            display: flex;
+            flex-direction: column; /* 무조건 세로로 쌓기 (모바일 우선) */
+            gap: 25px; 
+            margin-bottom: 20px; 
+        }
+
+        /* PC 화면(768px 이상)일 때만 2단으로 변경 */
+        @media (min-width: 1024px) {
+            .header { flex-direction: row; justify-content: space-between; align-items: center; }
+            .controls { width: auto; }
+            .dashboard-grid { 
+                display: grid; 
+                grid-template-columns: 1fr 1fr; /* 2단 분할 */
+            }
+            .full-width { grid-column: 1 / -1; }
+        }
+
+        /* 카드 스타일 */
+        .card { 
+            background: #1e293b; 
+            border-radius: 16px; 
+            padding: 15px; 
+            border: 1px solid #334155; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+            overflow: hidden; /* 차트 튀어나감 방지 */
+        }
         
-        /* 그리드 레이아웃: 3개의 차트 배치 */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .full-width { grid-column: 1 / -1; } /* 3번 차트는 넓게 */
-        
-        .card { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid #334155; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        h2 { margin: 0 0 15px 0; font-size: 18px; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        
+        h2 { 
+            margin: 0 0 10px 0; 
+            font-size: 18px; 
+            color: #94a3b8; 
+            font-weight: 600; 
+            border-left: 4px solid #38bdf8;
+            padding-left: 10px;
+        }
+
+        /* 차트 높이 강제 설정 (중요) */
+        .chart-container {
+            width: 100%;
+            height: 500px; /* 모바일에서 시원하게 보이도록 높이 증가 */
+        }
+
         /* 테이블 */
-        .table-container { overflow-x: auto; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { padding: 10px; text-align: right; border-bottom: 1px solid #334155; }
-        th { text-align: center; background: #0f172a; color: #64748b; position: sticky; top: 0; }
-        tr:hover { background: #334155; }
-        .text-call { color: #4ade80; } .text-put { color: #f87171; }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #334155; }
+        th { text-align: center; background: #0f172a; color: #94a3b8; position: sticky; top: 0; }
+        .text-call { color: #4ade80; font-weight: bold; } 
+        .text-put { color: #f87171; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🚀 OSCC Alpha Dashboard</h1>
+        <h1>🚀 OSCC Alpha</h1>
         <div class="controls">
             <select id="tickerSelect"></select>
             <select id="expirySelect"></select>
@@ -39,29 +107,31 @@
 
     <div class="dashboard-grid">
         <div class="card">
-            <h2>📊 1. Gamma Exposure (Volatility Map)</h2>
-            <div id="chartGEX" style="height: 350px;"></div>
+            <h2>📊 1. Gamma Exposure</h2>
+            <div id="chartGEX" class="chart-container"></div>
         </div>
 
         <div class="card">
-            <h2>wall 2. Open Interest (Support/Resistance)</h2>
-            <div id="chartOI" style="height: 350px;"></div>
+            <h2>🧱 2. Open Interest (Walls)</h2>
+            <div id="chartOI" class="chart-container"></div>
         </div>
 
         <div class="card full-width">
-            <h2>📈 3. Net GEX History (Market Regime Trend)</h2>
-            <div id="chartTrend" style="height: 300px;"></div>
+            <h2>📈 3. Net GEX Trend</h2>
+            <div id="chartTrend" class="chart-container" style="height: 350px;"></div>
         </div>
     </div>
 
-    <div class="card table-container">
+    <div class="card">
         <h2>📋 Option Chain Details</h2>
-        <table id="optionTable">
-            <thead>
-                <tr><th>Type</th><th>Strike</th><th>GEX ($)</th><th>OI</th><th>Vol</th><th>IV</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-wrap">
+            <table id="optionTable">
+                <thead>
+                    <tr><th>Type</th><th>Strike</th><th>GEX ($)</th><th>OI</th><th>Vol</th><th>IV</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -90,7 +160,10 @@
                 document.getElementById('expirySelect').addEventListener('change', render);
 
                 if(tickers.length > 0) updateExpiry();
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error(e);
+                document.querySelector('.header').insertAdjacentHTML('afterend', `<div style="color:red; text-align:center;">❌ 데이터 로드 실패. GitHub Action이 완료되었는지 확인하세요.</div>`);
+            }
         }
 
         function updateExpiry() {
@@ -110,67 +183,77 @@
             const ticker = document.getElementById('tickerSelect').value;
             const expiry = document.getElementById('expirySelect').value;
             
-            // 필터링
+            // 필터링 및 정렬
             const currentChain = gexData.filter(d => d.ticker === ticker && d.expiry === expiry)
                                         .sort((a,b) => a.strike - b.strike);
             const trendHistory = summaryData.filter(d => d.ticker === ticker);
 
-            // 1. GEX Chart
-            drawBarChart('chartGEX', currentChain, 'gex_notional', 'Gamma Exposure');
-            
-            // 2. OI Chart (Open Interest)
-            drawBarChart('chartOI', currentChain, 'openInterest', 'Open Interest');
+            // 차트 그리기
+            const commonLayout = {
+                paper_bgcolor: 'rgba(0,0,0,0)', 
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: '#94a3b8', size: 11}, 
+                margin: {t:30, b:40, l:50, r:10}, // 여백 최소화하여 차트 영역 확보
+                xaxis: {gridcolor: '#334155', showgrid: true}, 
+                yaxis: {gridcolor: '#334155', showgrid: true},
+                legend: {orientation: 'h', y: 1.1} // 범례 상단 배치
+            };
 
-            // 3. Trend Chart (Net GEX History)
-            drawTrendChart('chartTrend', trendHistory);
+            // 1. GEX Chart
+            drawBarChart('chartGEX', currentChain, 'gex_notional', commonLayout);
+            
+            // 2. OI Chart
+            drawBarChart('chartOI', currentChain, 'openInterest', commonLayout);
+
+            // 3. Trend Chart
+            drawTrendChart('chartTrend', trendHistory, commonLayout);
 
             // 4. Table
             drawTable(currentChain);
         }
 
-        function drawBarChart(divId, data, key, label) {
+        function drawBarChart(divId, data, key, layout) {
             const calls = data.filter(d => d.type === 'call');
             const puts = data.filter(d => d.type === 'put');
             
-            // OI 차트의 경우 Put도 양수로 보여주는게 일반적이나, GEX 스타일 유지를 위해 
-            // 여기서는 GEX는 Put이 음수, OI는 Put을 음수처리하지 않음 (비교 용이성)
-            // 하지만 사용자 요청인 '벽'을 보려면 양수로 세워두는게 나을 수 있음.
-            // 여기서는 GEX 스타일(Call 위, Put 아래)로 통일합니다.
+            // GEX는 Put을 음수로, OI는 그냥 양수로 (벽 보기 위해)
+            // 사용자 피드백: "벽"을 보고 싶어함 -> OI는 양수끼리 비교하는게 나음 (Grouped Bar)
+            // 하지만 공간 절약을 위해 Relative(위/아래) 유지하되, OI Put은 음수로 변환하여 아래로 표시
             
-            const yPuts = key === 'openInterest' ? puts.map(d => -d[key]) : puts.map(d => d[key]);
+            const yPuts = puts.map(d => -d[key]); 
 
             Plotly.newPlot(divId, [
                 { x: calls.map(d => d.strike), y: calls.map(d => d[key]), type: 'bar', name: 'Call', marker: {color: '#4ade80'} },
                 { x: puts.map(d => d.strike), y: yPuts, type: 'bar', name: 'Put', marker: {color: '#f87171'} }
             ], {
-                barmode: 'relative', paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-                font: {color: '#94a3b8'}, margin: {t:10, b:30, l:40, r:10},
-                xaxis: {gridcolor: '#334155'}, yaxis: {gridcolor: '#334155'}
-            }, {responsive: true});
+                ...layout,
+                barmode: 'relative' // 위아래로 쌓기
+            }, {responsive: true, displayModeBar: false});
         }
 
-        function drawTrendChart(divId, data) {
+        function drawTrendChart(divId, data, layout) {
             Plotly.newPlot(divId, [{
                 x: data.map(d => d.timestamp), y: data.map(d => d.net_gex_total),
-                type: 'scatter', mode: 'lines+markers', line: {color: '#60a5fa', width: 3},
+                type: 'scatter', mode: 'lines+markers', line: {color: '#38bdf8', width: 3},
                 fill: 'tozeroy'
             }], {
-                paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-                font: {color: '#94a3b8'}, margin: {t:10, b:30, l:40, r:10},
-                xaxis: {gridcolor: '#334155'}, yaxis: {gridcolor: '#334155', zerolinecolor: '#fff'}
-            }, {responsive: true});
+                ...layout,
+                margin: {t:10, b:30, l:40, r:10}
+            }, {responsive: true, displayModeBar: false});
         }
 
         function drawTable(data) {
             const tbody = document.querySelector('#optionTable tbody');
             tbody.innerHTML = '';
+            
+            // 모바일에서 너무 길면 스크롤 힘드니까 핵심 가격대(현재가 근처)만 보여주거나 전체 보여주기
+            // 여기서는 전체 보여주되 CSS로 스크롤 처리함
             data.forEach(d => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="text-center ${d.type==='call'?'text-call':'text-put'}">${d.type.toUpperCase()}</td>
-                    <td style="font-weight:bold">${d.strike}</td>
-                    <td>${Math.round(d.gex_notional).toLocaleString()}</td>
-                    <td>${d.openInterest.toLocaleString()}</td>
+                    <td style="text-align:center" class="${d.type==='call'?'text-call':'text-put'}">${d.type.toUpperCase()}</td>
+                    <td style="font-weight:bold; text-align:center">${d.strike}</td>
+                    <td>${(d.gex_notional/1000).toFixed(1)}k</td> <td>${d.openInterest.toLocaleString()}</td>
                     <td>${d.volume.toLocaleString()}</td>
                     <td>${(d.impliedVolatility*100).toFixed(1)}%</td>
                 `;
