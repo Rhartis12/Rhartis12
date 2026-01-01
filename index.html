@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSCC Market Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #0d1117; 
+            color: #c9d1d9; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 40px; border-bottom: 1px solid #30363d; padding-bottom: 20px; }
+        h1 { color: #58a6ff; margin: 0; font-size: 2.5em; }
+        p { color: #8b949e; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; }
+        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .card h2 { margin-top: 0; color: #f0f6fc; font-size: 1.5em; border-left: 4px solid #238636; padding-left: 10px; }
+        canvas { width: 100% !important; height: 300px !important; }
+        .loading { text-align: center; margin-top: 50px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 OSCC Alpha Dashboard</h1>
+            <p>Quantitative Option Flow & Gamma Exposure Tracker</p>
+        </header>
+
+        <div id="loading" class="loading">데이터를 불러오는 중입니다...</div>
+        <div id="charts-container" class="grid"></div>
+    </div>
+
+    <script>
+        async function loadData() {
+            try {
+                // 같은 리포지토리에 있는 JSON 파일을 읽어옵니다.
+                const response = await fetch('./dashboard_data.json');
+                if (!response.ok) throw new Error("JSON 파일을 찾을 수 없습니다.");
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+                const container = document.getElementById('charts-container');
+                
+                // 종목별 데이터 그룹화
+                const tickers = [...new Set(data.map(d => d.ticker))];
+
+                tickers.forEach(ticker => {
+                    const tickerData = data.filter(d => d.ticker === ticker);
+                    const dates = tickerData.map(d => d.timestamp);
+                    const prices = tickerData.map(d => d.price);
+                    const netGex = tickerData.map(d => d.net_gex);
+
+                    // 카드 생성
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <h2>$${ticker}</h2>
+                        <canvas id="chart-${ticker}"></canvas>
+                    `;
+                    container.appendChild(card);
+
+                    // 차트 그리기
+                    const ctx = document.getElementById(`chart-${ticker}`).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: dates,
+                            datasets: [
+                                {
+                                    label: 'Price ($)',
+                                    data: prices,
+                                    borderColor: '#58a6ff',
+                                    backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                                    yAxisID: 'y',
+                                    tension: 0.1
+                                },
+                                {
+                                    label: 'Net GEX',
+                                    data: netGex,
+                                    borderColor: '#f78166',
+                                    borderDash: [5, 5],
+                                    yAxisID: 'y1',
+                                    tension: 0.1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { labels: { color: '#c9d1d9' } }
+                            },
+                            scales: {
+                                x: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } },
+                                y: { 
+                                    type: 'linear', display: true, position: 'left', 
+                                    ticks: { color: '#8b949e' }, grid: { color: '#30363d' } 
+                                },
+                                y1: { 
+                                    type: 'linear', display: true, position: 'right', 
+                                    ticks: { color: '#8b949e' }, grid: { drawOnChartArea: false } 
+                                }
+                            }
+                        }
+                    });
+                });
+            } catch (error) {
+                document.getElementById('loading').innerText = "데이터 로드 실패: " + error.message;
+            }
+        }
+        loadData();
+    </script>
+</body>
+</html>
