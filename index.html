@@ -15,6 +15,7 @@
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         select#tickerSelect { background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; outline: none; }
+        
         .ribbon-container { overflow-x: auto; white-space: nowrap; padding-bottom: 10px; margin-bottom: 20px; }
         .ribbon-btn { display: inline-block; background: var(--card); color: var(--subtext); border: 1px solid var(--border); padding: 8px 16px; margin-right: 8px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
         .ribbon-btn:hover { border-color: var(--accent); color: white; }
@@ -36,14 +37,18 @@
         .table-scroll { overflow-x: auto; max-height: 800px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
         th { background: #0f172a; color: var(--subtext); padding: 12px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; }
+        
         th.group-call { border-bottom: 2px solid var(--call); color: var(--call); }
         th.group-put { border-bottom: 2px solid var(--put); color: var(--put); }
         th.group-strike { border-bottom: 2px solid #fff; color: white; background: #1e293b; }
+        
         td { padding: 8px 8px; border-bottom: 1px solid #334155; white-space: nowrap; }
         .col-call { text-align: right; color: #cbd5e1; } .col-put { text-align: left; color: #cbd5e1; }
         .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; }
         .val-call { color: var(--call); } .val-put { color: var(--put); }
-        .atm-row { background-color: rgba(255, 215, 0, 0.1); border: 2px solid #ffd700; } /* ATM 강조 */
+        
+        /* 현재가 행 (Insert Row) 스타일 */
+        .current-price-row td { background-color: rgba(255, 215, 0, 0.15); color: #ffd700; font-weight: bold; text-align: center; border-top: 1px dashed #ffd700; border-bottom: 1px dashed #ffd700; padding: 10px 0; }
     </style>
 </head>
 <body>
@@ -104,7 +109,7 @@
             tickers.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.text = `$${t}`; sel.appendChild(opt); });
             sel.addEventListener('change', () => updateRibbon(true));
             if(tickers.length > 0) updateRibbon(true);
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error(e); document.body.innerHTML = "<h2 style='text-align:center; color:white'>Data Load Failed.</h2>"; }
     }
 
     function updateRibbon(reset) {
@@ -125,31 +130,26 @@
         const aiInfo = aiData[ticker];
         let currentPrice = 0;
         
-        // AI 데이터 연동 확인
         if (aiInfo) {
             document.getElementById('aiExpiryBadge').innerText = `Target: ${aiInfo.expiry || 'N/A'}`;
             document.getElementById('aiBody').innerHTML = `<strong>[${aiInfo.sentiment}] ${aiInfo.title}</strong>\n\n${aiInfo.body}`;
             currentPrice = aiInfo.price;
         } else {
             document.getElementById('aiExpiryBadge').innerText = `Target: --`;
-            document.getElementById('aiBody').innerText = "AI Analysis not available for this ticker.";
+            document.getElementById('aiBody').innerText = "AI Analysis not available.";
         }
 
         const data = rawData.filter(d => d.ticker === ticker && d.expiry === expiry);
-        if(currentPrice === 0 && data.length > 0) currentPrice = data[0].strike; // Fallback
+        if(currentPrice === 0 && data.length > 0) currentPrice = data[0].strike; 
 
         drawCharts(data, currentPrice);
         drawOptionChain(data, currentPrice);
     }
 
     function drawCharts(data, currentPrice) {
-        // 1. 차트용 데이터 필터링 (GEX 절댓값 기준 상위 40개 행사가만 - 노이즈 제거)
+        // 상위 40개 행사가 필터링 (GEX 절대값 기준)
         const strikeMap = new Map();
-        data.forEach(d => {
-            const val = Math.abs(d.gex_notional);
-            strikeMap.set(d.strike, (strikeMap.get(d.strike) || 0) + val);
-        });
-        // 상위 40개 행사가 추출
+        data.forEach(d => { strikeMap.set(d.strike, (strikeMap.get(d.strike) || 0) + Math.abs(d.gex_notional)); });
         const topStrikes = Array.from(strikeMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 40).map(e => e[0]);
         const filteredData = data.filter(d => topStrikes.includes(d.strike));
 
@@ -160,11 +160,13 @@
             barmode: 'relative', paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
             font: {color: '#94a3b8'}, margin: {t:40, b:30, l:60, r:20},
             xaxis: {gridcolor: '#334155', zerolinecolor: '#fff'},
-            yaxis: {gridcolor: '#334155', type: 'category'},
-            // 현재가 점선
+            yaxis: {gridcolor: '#334155'},
+            // ⭐ [수정] 차트가 가로형(Y축=Strike)이므로, 선은 가로선(Horizontal)이어야 함
             shapes: currentPrice > 0 ? [{
-                type: 'line', y0: 0, y1: 1, yref: 'paper', x0: currentPrice, x1: currentPrice, xref: 'x',
-                line: { color: 'yellow', width: 2, dash: 'dash' }
+                type: 'line', 
+                x0: 0, x1: 1, xref: 'paper', // 차트 전체 너비
+                y0: currentPrice, y1: currentPrice, yref: 'y', // 특정 Y 높이 (가격)
+                line: { color: '#ffd700', width: 2, dash: 'dot' }
             }] : []
         };
 
@@ -174,7 +176,7 @@
             { x: calls.map(d=>d.gex_notional), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call GEX', marker:{color:'#10b981'} }
         ], { ...layoutBase, xaxis: { ...layoutBase.xaxis, title: 'Net Gamma ($)' } }, {responsive: true, displayModeBar: false});
 
-        // OI Chart (변수명 수정됨: calls/puts 사용)
+        // OI Chart
         Plotly.newPlot('chartOI', [
             { x: puts.map(d=>d.openInterest), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put OI', marker:{color:'#dc2626', opacity:0.7} },
             { x: calls.map(d=>d.openInterest), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call OI', marker:{color:'#059669', opacity:0.7} }
@@ -183,27 +185,42 @@
 
     function drawOptionChain(data, currentPrice) {
         const tbody = document.querySelector('#chainTable tbody'); tbody.innerHTML = '';
-        
-        // 전체 행사가 표시 (필터링 없이)
         const strikeMap = {};
         data.forEach(d => { if(!strikeMap[d.strike]) strikeMap[d.strike] = {call:null, put:null}; strikeMap[d.strike][d.type] = d; });
+        
+        // 행사가 정렬
         const strikes = Object.keys(strikeMap).map(Number).sort((a,b) => a - b);
         
-        // ATM 찾기
-        let closest = strikes[0], minDiff = Math.abs(currentPrice - closest);
-        strikes.forEach(k => { const diff = Math.abs(currentPrice - k); if(diff < minDiff) { minDiff = diff; closest = k; } });
-
         const num = (n) => n ? n.toLocaleString() : '-';
         const gex = (n) => n ? (n/1000).toFixed(0)+'k' : '-';
         const iv = (n) => n ? (n*100).toFixed(1)+'%' : '-';
 
+        // ⭐ [수정] 테이블 중간에 현재가 Row 삽입 로직
+        let priceInserted = false;
+
         strikes.forEach(k => {
+            // 현재가가 이 행사가보다 작고, 아직 삽입 안됐다면 -> 삽입
+            if (!priceInserted && currentPrice < k) {
+                const priceRow = document.createElement('tr');
+                priceRow.className = 'current-price-row';
+                priceRow.innerHTML = `<td colspan="9">⚡ Current Price: $${currentPrice.toFixed(2)} ⚡</td>`;
+                tbody.appendChild(priceRow);
+                priceInserted = true;
+            }
+
             const row = document.createElement('tr'); 
-            if(k === closest) row.className = 'atm-row'; // ATM 강조 클래스
             const c = strikeMap[k].call || {}, p = strikeMap[k].put || {};
             row.innerHTML = `<td class="col-call val-call">${gex(c.gex_notional)}</td><td class="col-call">${num(c.openInterest)}</td><td class="col-call">${num(c.volume)}</td><td class="col-call">${iv(c.impliedVolatility)}</td><td class="col-strike">${k}</td><td class="col-put">${iv(p.impliedVolatility)}</td><td class="col-put">${num(p.volume)}</td><td class="col-put">${num(p.openInterest)}</td><td class="col-put val-put">${gex(p.gex_notional)}</td>`;
             tbody.appendChild(row);
         });
+        
+        // 만약 현재가가 모든 행사가보다 크다면 맨 마지막에 추가
+        if (!priceInserted) {
+            const priceRow = document.createElement('tr');
+            priceRow.className = 'current-price-row';
+            priceRow.innerHTML = `<td colspan="9">⚡ Current Price: $${currentPrice.toFixed(2)} ⚡</td>`;
+            tbody.appendChild(priceRow);
+        }
     }
     init();
 </script>
