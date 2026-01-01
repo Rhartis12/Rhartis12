@@ -24,7 +24,7 @@
         /* AI 카드 */
         .ai-card { background: linear-gradient(180deg, rgba(30,41,59,0.9) 0%, rgba(15,23,42,1) 100%); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
         .ai-title { font-size: 20px; font-weight: bold; color: var(--accent); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .ai-body { font-size: 16px; line-height: 1.7; color: #cbd5e1; white-space: pre-line; } /* 상세 내용을 위해 폰트 키움 */
+        .ai-body { font-size: 16px; line-height: 1.7; color: #cbd5e1; white-space: pre-line; }
         .badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #334155; color: white; margin-left: auto; }
 
         /* 차트 */
@@ -40,7 +40,7 @@
         .tf-btn { background: transparent; color: var(--subtext); border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 12px; font-weight: 600; }
         .tf-btn.active { background: var(--accent); color: white; }
 
-        .table-scroll { overflow-x: auto; max-height: 600px; scroll-behavior: smooth; } /* 스크롤 높이 조정 */
+        .table-scroll { overflow-x: auto; max-height: 500px; scroll-behavior: smooth; position: relative; } /* smooth scroll */
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
         th { background: #0f172a; color: var(--subtext); padding: 12px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; text-align: center; }
         
@@ -51,6 +51,7 @@
         td { padding: 8px 8px; border-bottom: 1px solid #334155; white-space: nowrap; }
         .col-call { text-align: right; color: #cbd5e1; } .col-put { text-align: left; color: #cbd5e1; }
         .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; width: 80px; }
+        .val-call { color: var(--call); } .val-put { color: var(--put); }
         
         /* 변화량 색상 */
         .diff-pos { color: var(--call); font-weight: bold; }
@@ -98,8 +99,7 @@
                 <button class="tf-btn" onclick="setTF('1w', this)">1W Δ</button>
             </div>
         </div>
-        <div class="table-scroll" id="tableScrollArea">
-            <table id="chainTable">
+        <div class="table-scroll" id="tableContainer"> <table id="chainTable">
                 <thead>
                     <tr>
                         <th class="group-call">GEX</th><th class="group-call">OI</th><th class="group-call">Vol</th><th class="group-call">IV</th>
@@ -134,7 +134,7 @@
             tickers.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.text = `$${t}`; sel.appendChild(opt); });
             
             sel.addEventListener('change', () => updateRibbon(true));
-            if(tickers.length > 0) updateRibbon(true); // 초기 실행
+            if(tickers.length > 0) updateRibbon(true); 
 
         } catch(e) { console.error(e); }
     }
@@ -144,18 +144,13 @@
         const ribbon = document.getElementById('ribbonMenu');
         ribbon.innerHTML = '';
         
-        // 데이터에 있는 만기일 목록
         const expiries = [...new Set(rawData.filter(d => d.ticker === currentTicker).map(d => d.expiry))].sort();
-        
-        // AI가 분석한 타겟 만기일 찾기
         const aiTargetDate = aiData[currentTicker] ? aiData[currentTicker].expiry : null;
 
         expiries.forEach((date, idx) => {
             const btn = document.createElement('div');
             btn.className = 'ribbon-btn'; 
             btn.innerText = date;
-            
-            // ⭐ [핵심] AI 타겟 날짜면 'monthly-target' 클래스 부여 (나중에 찾기 쉽게)
             if (date === aiTargetDate) btn.dataset.isTarget = "true";
 
             btn.onclick = () => { 
@@ -168,7 +163,6 @@
         });
 
         if (reset) {
-            // ⭐ [핵심] 리셋 시: AI 타겟 날짜 버튼이 있으면 클릭, 없으면 첫 번째 클릭
             const targetBtn = ribbon.querySelector('[data-is-target="true"]');
             if (targetBtn) targetBtn.click();
             else if (ribbon.firstChild) ribbon.firstChild.click();
@@ -183,7 +177,6 @@
     }
 
     function renderDashboard(tableOnly = false) {
-        // 가격 찾기
         let price = 0;
         const sumInfo = summaryData.filter(d => d.ticker === currentTicker).pop();
         if(sumInfo) price = sumInfo.price;
@@ -203,7 +196,6 @@
         const info = aiData[currentTicker];
         if (info) {
             document.getElementById('aiExpiryBadge').innerText = `Target: ${info.expiry || 'N/A'}`;
-            // 상세 내용 표시
             document.getElementById('aiBody').innerHTML = `<strong>[${info.sentiment}] ${info.title}</strong>\n\n${info.body}`;
         } else {
             document.getElementById('aiBody').innerText = "AI Analysis not available.";
@@ -263,11 +255,14 @@
         };
 
         let priceInserted = false;
-        let targetRow = null; // ⭐ 스크롤 타겟 요소
+        let targetElement = null; // ⭐ 스크롤 타겟
 
         const appendRow = (html, isTarget) => {
             const tr = document.createElement('tr');
-            if(isTarget) { tr.className = 'current-price-row'; targetRow = tr; }
+            if(isTarget) { 
+                tr.className = 'current-price-row'; 
+                targetElement = tr; 
+            }
             tr.innerHTML = html;
             tbody.appendChild(tr);
         }
@@ -302,10 +297,17 @@
             appendRow(`<td colspan="9">⚡ Current Price: $${price.toFixed(2)} ⚡</td>`, true);
         }
 
-        // ⭐ [핵심] 자동 스크롤 로직 (테이블 렌더링 후 실행)
-        if (targetRow) {
+        // ⭐ [핵심 수정] 내부 컨테이너만 부드럽게 스크롤
+        if (targetElement) {
             setTimeout(() => {
-                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const container = document.getElementById('tableContainer');
+                // 타겟 행의 위치 계산 (테이블 내 상대 위치)
+                const topPos = targetElement.offsetTop;
+                // 컨테이너의 절반 높이만큼 빼서 중앙에 위치시킴
+                container.scrollTo({
+                    top: topPos - (container.clientHeight / 2) + (targetElement.clientHeight / 2),
+                    behavior: 'smooth'
+                });
             }, 100);
         }
     }
