@@ -6,71 +6,84 @@
     <title>OSCC Alpha Deck</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        /* --- 기본 테마 --- */
+        /* --- 테마 설정 --- */
         :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --subtext: #94a3b8; --border: #334155; --call: #10b981; --put: #ef4444; --accent: #3b82f6; }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; margin: 0; padding: 0; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
         
-        /* 헤더 & 리본 */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        select#tickerSelect { background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; outline: none; }
-        
-        .ribbon-container { overflow-x: auto; white-space: nowrap; padding-bottom: 10px; margin-bottom: 20px; }
-        .ribbon-btn { display: inline-block; background: var(--card); color: var(--subtext); border: 1px solid var(--border); padding: 8px 16px; margin-right: 8px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
-        .ribbon-btn:hover { border-color: var(--accent); color: white; }
-        .ribbon-btn.active { background: var(--accent); color: white; border-color: var(--accent); font-weight: bold; }
+        /* 헤더 */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        h1 { margin: 0; font-size: 24px; color: var(--accent); }
+        select { background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; font-size: 16px; }
+
+        /* 리본 메뉴 */
+        .ribbon-container { overflow-x: auto; white-space: nowrap; margin-bottom: 20px; padding-bottom: 5px; }
+        .ribbon-btn { display: inline-block; background: var(--card); color: var(--subtext); border: 1px solid var(--border); padding: 6px 14px; margin-right: 8px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .ribbon-btn:hover, .ribbon-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
         /* AI 카드 */
-        .ai-card { background: linear-gradient(180deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,1) 100%); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 30px; }
+        .ai-card { background: linear-gradient(180deg, rgba(30,41,59,0.8) 0%, #0f172a 100%); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .ai-title { font-size: 18px; font-weight: bold; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
         .ai-body { font-size: 15px; line-height: 1.6; color: #cbd5e1; white-space: pre-line; }
         .badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #334155; color: white; margin-left: auto; }
 
-        /* 차트 */
-        .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 20px; height: 500px; position: relative; }
-        .chart-title { position: absolute; top: 15px; left: 20px; font-weight: bold; color: var(--subtext); z-index: 10; pointer-events: none; }
+        /* 차트 영역 */
+        .chart-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
+        @media (min-width: 1000px) { .chart-grid { grid-template-columns: 1fr 1fr; } }
+        .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; height: 500px; position: relative; }
+        .chart-title { position: absolute; top: 15px; left: 20px; font-weight: bold; color: var(--subtext); font-size: 14px; z-index: 10; pointer-events: none; }
 
-        /* 테이블 */
-        .table-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        .table-header { padding: 15px 20px; font-weight: bold; border-bottom: 1px solid var(--border); background: #253347; }
-        .table-scroll { overflow-x: auto; max-height: 800px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
-        th { background: #0f172a; color: var(--subtext); padding: 12px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; }
+        /* 테이블 영역 & 타임프레임 스위치 */
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .tf-group { display: flex; background: var(--card); border-radius: 6px; padding: 2px; border: 1px solid var(--border); }
+        .tf-btn { background: transparent; color: var(--subtext); border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .tf-btn.active { background: var(--accent); color: white; }
+
+        .table-scroll { overflow-x: auto; max-height: 800px; border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; background: var(--card); }
+        th { background: #0f172a; color: var(--subtext); padding: 12px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; text-align: center; }
         
-        th.group-call { border-bottom: 2px solid var(--call); color: var(--call); }
-        th.group-put { border-bottom: 2px solid var(--put); color: var(--put); }
-        th.group-strike { border-bottom: 2px solid #fff; color: white; background: #1e293b; }
-        
-        td { padding: 8px 8px; border-bottom: 1px solid #334155; white-space: nowrap; }
-        .col-call { text-align: right; color: #cbd5e1; } .col-put { text-align: left; color: #cbd5e1; }
-        .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; }
+        /* 그룹 헤더 색상 */
+        .th-call { border-bottom: 2px solid var(--call); color: var(--call); }
+        .th-put { border-bottom: 2px solid var(--put); color: var(--put); }
+        .th-strike { background: #253347; color: white; border-bottom: 2px solid white; }
+
+        td { padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        tr:hover td { background-color: #334155; }
+
+        /* 컬럼 스타일 */
+        .col-call { text-align: right; color: #cbd5e1; }
+        .col-put { text-align: left; color: #cbd5e1; }
+        .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; width: 80px; }
         .val-call { color: var(--call); } .val-put { color: var(--put); }
-        
-        /* 현재가 행 스타일 (노란색 점선 테두리) */
-        .current-price-row td { background-color: rgba(255, 215, 0, 0.1); color: #ffd700; font-weight: bold; text-align: center; border-top: 1px dashed #ffd700; border-bottom: 1px dashed #ffd700; padding: 8px 0; }
+
+        /* 변화량 색상 */
+        .diff-pos { color: var(--call); font-weight: bold; }
+        .diff-neg { color: var(--put); font-weight: bold; }
+        .diff-neu { color: #64748b; }
+
+        /* 현재가 행 */
+        .current-price-row td { background: rgba(255, 215, 0, 0.15); color: #ffd700; font-weight: bold; text-align: center; border-top: 1px dashed #ffd700; border-bottom: 1px dashed #ffd700; padding: 8px 0; }
         .atm-row { background-color: rgba(255, 255, 255, 0.05); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
+    <div class="header">
         <h1>🚀 OSCC Alpha Deck</h1>
         <select id="tickerSelect"></select>
-    </header>
+    </div>
 
     <div id="ribbonMenu" class="ribbon-container"></div>
 
-    <div class="ai-card" id="aiSection">
+    <div class="ai-card">
         <div class="ai-title">
             <span>🤖 AI Tactical Insight</span>
-            <span class="badge" id="aiExpiryBadge">Target: --</span>
+            <span class="badge" id="aiBadge">Target: --</span>
         </div>
-        <div class="ai-body" id="aiBody">Loading strategy...</div>
+        <div class="ai-body" id="aiBody">Loading analysis...</div>
     </div>
 
-    <div class="chart-section">
+    <div class="chart-grid">
         <div class="chart-box">
             <div class="chart-title">📊 Net Gamma Exposure (GEX Map)</div>
             <div id="chartGEX" style="width:100%; height:100%;"></div>
@@ -81,29 +94,36 @@
         </div>
     </div>
 
-    <div class="table-section">
-        <div class="table-header">📋 Option Chain Details</div>
-        <div class="table-scroll">
-            <table id="chainTable">
-                <thead>
-                    <tr>
-                        <th class="group-call">GEX ($)</th><th class="group-call">OI</th><th class="group-call">Vol</th><th class="group-call">IV</th>
-                        <th class="group-strike">STRIKE</th>
-                        <th class="group-put">IV</th><th class="group-put">Vol</th><th class="group-put">OI</th><th class="group-put">GEX ($)</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+    <div class="table-header">
+        <div style="font-weight:bold; color:white; font-size:18px;">📋 Option Chain Details</div>
+        <div class="tf-group">
+            <button class="tf-btn active" onclick="setTF('curr', this)">Current</button>
+            <button class="tf-btn" onclick="setTF('1d', this)">1D Δ</button>
+            <button class="tf-btn" onclick="setTF('1w', this)">1W Δ</button>
         </div>
     </div>
-</div>
+    
+    <div class="table-scroll">
+        <table id="chainTable">
+            <thead>
+                <tr>
+                    <th class="th-call">GEX</th><th class="th-call">OI</th><th class="th-call">Vol</th><th class="th-call">IV</th>
+                    <th class="th-strike">STRIKE</th>
+                    <th class="th-put">IV</th><th class="th-put">Vol</th><th class="th-put">OI</th><th class="th-put">GEX</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
 <script>
     let rawData = [], aiData = {}, summaryData = [];
+    let currentTF = 'curr'; // 'curr', '1d', '1w'
+    let currentTicker = '', currentExpiry = '';
 
     async function init() {
         try {
-            // [수정] dashboard_summary.json 추가 로드 (종가 확보용)
+            // 데이터 로드
             const [resGex, resAi, resSum] = await Promise.all([
                 fetch('dashboard_gex_details.json'), 
                 fetch('dashboard_ai.json'),
@@ -113,121 +133,175 @@
             aiData = await resAi.json();
             summaryData = await resSum.json();
 
+            // 종목 세팅
             const tickers = [...new Set(rawData.map(d => d.ticker))].sort();
             const sel = document.getElementById('tickerSelect');
             tickers.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.text = `$${t}`; sel.appendChild(opt); });
+            
             sel.addEventListener('change', () => updateRibbon(true));
             if(tickers.length > 0) updateRibbon(true);
-        } catch(e) { console.error(e); }
+
+        } catch(e) { console.error(e); document.body.innerHTML = "<h2 style='color:white;text-align:center'>Data Load Failed.</h2>"; }
     }
 
     function updateRibbon(reset) {
-        const ticker = document.getElementById('tickerSelect').value;
+        currentTicker = document.getElementById('tickerSelect').value;
         const ribbon = document.getElementById('ribbonMenu');
         ribbon.innerHTML = '';
-        const expiries = [...new Set(rawData.filter(d => d.ticker === ticker).map(d => d.expiry))].sort();
+        const expiries = [...new Set(rawData.filter(d => d.ticker === currentTicker).map(d => d.expiry))].sort();
+        
         expiries.forEach((date, idx) => {
             const btn = document.createElement('div');
             btn.className = 'ribbon-btn'; btn.innerText = date;
-            btn.onclick = () => { document.querySelectorAll('.ribbon-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderDashboard(ticker, date); };
+            btn.onclick = () => { 
+                document.querySelectorAll('.ribbon-btn').forEach(b=>b.classList.remove('active')); 
+                btn.classList.add('active'); 
+                currentExpiry = date;
+                renderDashboard(); 
+            };
             ribbon.appendChild(btn);
             if (reset && idx === 0) btn.click();
         });
     }
 
-    function renderDashboard(ticker, expiry) {
-        // 1. 가격 가져오기 (Summary 데이터에서 최신 종가 조회)
-        let currentPrice = 0;
-        const tickerSummary = summaryData.filter(d => d.ticker === ticker).sort((a,b) => a.timestamp.localeCompare(b.timestamp)).pop();
-        if (tickerSummary) currentPrice = tickerSummary.price;
-
-        // 2. AI 데이터 표시
-        const aiInfo = aiData[ticker];
-        if (aiInfo) {
-            document.getElementById('aiExpiryBadge').innerText = `Target: ${aiInfo.expiry || 'N/A'}`;
-            document.getElementById('aiBody').innerHTML = `<strong>[${aiInfo.sentiment}] ${aiInfo.title}</strong>\n\n${aiInfo.body}`;
-            // 만약 summary 파일이 없어서 가격 못구했으면 AI 데이터라도 씀
-            if(currentPrice === 0 && aiInfo.price) currentPrice = aiInfo.price;
-        } else {
-            document.getElementById('aiExpiryBadge').innerText = `Target: --`;
-            document.getElementById('aiBody').innerText = "AI Analysis not available.";
-        }
-
-        const data = rawData.filter(d => d.ticker === ticker && d.expiry === expiry);
-        if(currentPrice === 0 && data.length > 0) currentPrice = data[0].strike; 
-
-        drawCharts(data, currentPrice);
-        drawOptionChain(data, currentPrice);
+    function setTF(tf, btn) {
+        currentTF = tf;
+        document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderDashboard(true); // true = redraw table only
     }
 
-    function drawCharts(data, currentPrice) {
+    function renderDashboard(tableOnly = false) {
+        // 1. 가격 찾기 (Summary -> AI -> Fallback)
+        let price = 0;
+        const sumInfo = summaryData.filter(d => d.ticker === currentTicker).pop();
+        if(sumInfo) price = sumInfo.price;
+        else if(aiData[currentTicker]) price = aiData[currentTicker].price;
+
+        const data = rawData.filter(d => d.ticker === currentTicker && d.expiry === currentExpiry);
+        if(price === 0 && data.length > 0) price = data[0].strike; 
+
+        // 2. 렌더링
+        if(!tableOnly) {
+            updateAI(price);
+            drawCharts(data, price);
+        }
+        drawTable(data, price);
+    }
+
+    function updateAI(price) {
+        const info = aiData[currentTicker];
+        if (info) {
+            document.getElementById('aiBadge').innerText = `Target: ${info.expiry || 'N/A'}`;
+            document.getElementById('aiBody').innerHTML = `<strong>[${info.sentiment}] ${info.title}</strong>\n\n${info.body}`;
+        } else {
+            document.getElementById('aiBadge').innerText = "Target: --";
+            document.getElementById('aiBody').innerText = "AI Analysis not available.";
+        }
+    }
+
+    function drawCharts(data, price) {
+        // 상위 40개 행사가 (GEX 절대값 기준)
         const strikeMap = new Map();
-        data.forEach(d => { strikeMap.set(d.strike, (strikeMap.get(d.strike) || 0) + Math.abs(d.gex_notional)); });
-        const topStrikes = Array.from(strikeMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 40).map(e => e[0]);
-        const filteredData = data.filter(d => topStrikes.includes(d.strike));
+        data.forEach(d => strikeMap.set(d.strike, (strikeMap.get(d.strike)||0) + Math.abs(d.gex_notional)));
+        const topStrikes = Array.from(strikeMap.entries()).sort((a,b)=>b[1]-a[1]).slice(0,40).map(e=>e[0]);
+        const filtered = data.filter(d => topStrikes.includes(d.strike));
 
-        const calls = filteredData.filter(d => d.type === 'call').sort((a,b) => a.strike - b.strike);
-        const puts = filteredData.filter(d => d.type === 'put').sort((a,b) => a.strike - b.strike);
+        const calls = filtered.filter(d => d.type === 'call').sort((a,b) => a.strike - b.strike);
+        const puts = filtered.filter(d => d.type === 'put').sort((a,b) => a.strike - b.strike);
 
-        const layoutBase = {
+        const layout = {
             barmode: 'relative', paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
             font: {color: '#94a3b8'}, margin: {t:40, b:30, l:60, r:20},
             xaxis: {gridcolor: '#334155', zerolinecolor: '#fff'},
-            // ⭐ [수정] y축 category 타입 제거 -> Linear 스케일로 변경 (정확한 가격 위치 표시 위해)
-            yaxis: {gridcolor: '#334155', tickformat: '.1f'},
-            shapes: currentPrice > 0 ? [{
-                type: 'line', 
-                x0: 0, x1: 1, xref: 'paper', 
-                y0: currentPrice, y1: currentPrice, yref: 'y',
-                line: { color: '#ffd700', width: 2, dash: 'dot' }
-            }] : []
+            yaxis: {gridcolor: '#334155'},
+            shapes: price > 0 ? [{type:'line', x0:0, x1:1, xref:'paper', y0:price, y1:price, yref:'y', line:{color:'#ffd700', width:2, dash:'dot'}}] : []
         };
 
         Plotly.newPlot('chartGEX', [
-            { x: puts.map(d=>d.gex_notional), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put GEX', marker:{color:'#ef4444'} },
-            { x: calls.map(d=>d.gex_notional), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call GEX', marker:{color:'#10b981'} }
-        ], { ...layoutBase, xaxis: { ...layoutBase.xaxis, title: 'Net Gamma ($)' } }, {responsive: true, displayModeBar: false});
+            { x: puts.map(d=>d.gex_notional), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put', marker:{color:'#ef4444'} },
+            { x: calls.map(d=>d.gex_notional), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call', marker:{color:'#10b981'} }
+        ], {...layout, xaxis:{...layout.xaxis, title:'Net Gamma ($)'}}, {responsive:true, displayModeBar:false});
 
         Plotly.newPlot('chartOI', [
-            { x: puts.map(d=>d.openInterest), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put OI', marker:{color:'#dc2626', opacity:0.7} },
-            { x: calls.map(d=>d.openInterest), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call OI', marker:{color:'#059669', opacity:0.7} }
-        ], { ...layoutBase, xaxis: { ...layoutBase.xaxis, title: 'Open Interest' } }, {responsive: true, displayModeBar: false});
+            { x: puts.map(d=>d.openInterest), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put', marker:{color:'#dc2626', opacity:0.7} },
+            { x: calls.map(d=>d.openInterest), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call', marker:{color:'#059669', opacity:0.7} }
+        ], {...layout, xaxis:{...layout.xaxis, title:'Open Interest'}}, {responsive:true, displayModeBar:false});
     }
 
-    function drawOptionChain(data, currentPrice) {
+    function drawTable(data, price) {
         const tbody = document.querySelector('#chainTable tbody'); tbody.innerHTML = '';
         const strikeMap = {};
-        data.forEach(d => { if(!strikeMap[d.strike]) strikeMap[d.strike] = {call:null, put:null}; strikeMap[d.strike][d.type] = d; });
+        data.forEach(d => { if(!strikeMap[d.strike]) strikeMap[d.strike] = {call:{}, put:{}}; strikeMap[d.strike][d.type] = d; });
         const strikes = Object.keys(strikeMap).map(Number).sort((a,b) => a - b);
         
-        let closest = strikes[0], minDiff = Math.abs(currentPrice - closest);
-        strikes.forEach(k => { const diff = Math.abs(currentPrice - k); if(diff < minDiff) { minDiff = diff; closest = k; } });
+        let closest = strikes[0], minDiff = Math.abs(price - closest);
+        strikes.forEach(k => { const diff = Math.abs(price - k); if(diff < minDiff) { minDiff = diff; closest = k; } });
 
-        const num = (n) => n ? n.toLocaleString() : '-';
-        const gex = (n) => n ? (n/1000).toFixed(0)+'k' : '-';
-        const iv = (n) => n ? (n*100).toFixed(1)+'%' : '-';
+        // 포맷터
+        const fmt = (val, type) => {
+            if(val === undefined || val === null) return '-';
+            
+            // Current 모드
+            if(currentTF === 'curr') {
+                if(type === 'gex') return (val/1000).toFixed(0) + 'k';
+                if(type === 'iv') return (val*100).toFixed(1) + '%';
+                return val.toLocaleString();
+            }
+            
+            // Change 모드
+            if(val === 0) return '<span class="diff-neu">-</span>';
+            const sign = val > 0 ? '+' : '';
+            const cls = val > 0 ? 'diff-pos' : 'diff-neg';
+            
+            if(type === 'gex') return `<span class="${cls}">${sign}${(val/1000).toFixed(0)}k</span>`;
+            if(type === 'iv') return `<span class="diff-neu">-</span>`; 
+            return `<span class="${cls}">${sign}${val.toLocaleString()}</span>`;
+        };
 
         let priceInserted = false;
-        
+
         strikes.forEach(k => {
-            // ⭐ 현재가 행 삽입 로직
-            if (!priceInserted && currentPrice < k) {
+            // 현재가 행 삽입
+            if (!priceInserted && price < k) {
                 const pr = document.createElement('tr'); pr.className = 'current-price-row';
-                pr.innerHTML = `<td colspan="9">⚡ Current Price: $${currentPrice.toFixed(2)} ⚡</td>`;
+                pr.innerHTML = `<td colspan="9">⚡ Current Price: $${price.toFixed(2)} ⚡</td>`;
                 tbody.appendChild(pr);
                 priceInserted = true;
             }
 
-            const row = document.createElement('tr'); 
+            const row = document.createElement('tr');
             if(k === closest) row.className = 'atm-row';
-            const c = strikeMap[k].call || {}, p = strikeMap[k].put || {};
-            row.innerHTML = `<td class="col-call val-call">${gex(c.gex_notional)}</td><td class="col-call">${num(c.openInterest)}</td><td class="col-call">${num(c.volume)}</td><td class="col-call">${iv(c.impliedVolatility)}</td><td class="col-strike">${k}</td><td class="col-put">${iv(p.impliedVolatility)}</td><td class="col-put">${num(p.volume)}</td><td class="col-put">${num(p.openInterest)}</td><td class="col-put val-put">${gex(p.gex_notional)}</td>`;
+            const c = strikeMap[k].call, p = strikeMap[k].put;
+
+            // 데이터 필드 선택 (raw or change)
+            let c_gex, c_oi, c_vol, p_gex, p_oi, p_vol;
+            if(currentTF === 'curr') {
+                c_gex = c.gex_notional; c_oi = c.openInterest; c_vol = c.volume;
+                p_gex = p.gex_notional; p_oi = p.openInterest; p_vol = p.volume;
+            } else {
+                const s = `_${currentTF}`; // _1d, _1w
+                c_gex = c[`gex_chg${s}`]; c_oi = c[`oi_chg${s}`]; c_vol = c[`vol_chg${s}`];
+                p_gex = p[`gex_chg${s}`]; p_oi = p[`oi_chg${s}`]; p_vol = p[`vol_chg${s}`];
+            }
+
+            row.innerHTML = `
+                <td class="col-call val-call">${fmt(c_gex, 'gex')}</td>
+                <td class="col-call">${fmt(c_oi, 'num')}</td>
+                <td class="col-call">${fmt(c_vol, 'num')}</td>
+                <td class="col-call">${fmt(c.impliedVolatility, 'iv')}</td>
+                <td class="col-strike">${k}</td>
+                <td class="col-put">${fmt(p.impliedVolatility, 'iv')}</td>
+                <td class="col-put">${fmt(p_vol, 'num')}</td>
+                <td class="col-put">${fmt(p_oi, 'num')}</td>
+                <td class="col-put val-put">${fmt(p_gex, 'gex')}</td>
+            `;
             tbody.appendChild(row);
         });
 
         if (!priceInserted) {
             const pr = document.createElement('tr'); pr.className = 'current-price-row';
-            pr.innerHTML = `<td colspan="9">⚡ Current Price: $${currentPrice.toFixed(2)} ⚡</td>`;
+            pr.innerHTML = `<td colspan="9">⚡ Current Price: $${price.toFixed(2)} ⚡</td>`;
             tbody.appendChild(pr);
         }
     }
