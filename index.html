@@ -2,157 +2,210 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSCC Pro Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1600px; margin: 0 auto; }
-        .ticker-section { margin-bottom: 60px; border-bottom: 1px solid #30363d; padding-bottom: 20px; }
-        .ticker-header { display: flex; align-items: center; margin-bottom: 20px; }
-        .ticker-title { font-size: 2em; color: #58a6ff; margin: 0 20px 0 0; font-weight: bold; }
-        .ticker-price { font-size: 1.5em; color: #fff; }
+        /* 다크 모드 스타일링 */
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; }
         
-        /* 그리드 레이아웃: 왼쪽 큰 차트, 오른쪽 작은 차트 2개 */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            grid-template-rows: 300px 300px;
-            gap: 20px;
-        }
-        .chart-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; position: relative; }
+        /* 컨트롤 패널 (드롭다운 영역) */
+        .controls { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; border: 1px solid #333; }
+        select { background: #333; color: #fff; border: 1px solid #555; padding: 8px 12px; border-radius: 4px; font-size: 16px; outline: none; }
+        label { font-weight: bold; color: #4caf50; }
+
+        /* 차트 컨테이너 */
+        .chart-box { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+
+        /* 테이블 스타일링 */
+        .table-container { overflow-x: auto; background: #1e1e1e; border-radius: 12px; padding: 20px; border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #333; }
+        th { text-align: center; background-color: #2c2c2c; color: #4caf50; position: sticky; top: 0; }
+        td.text-center { text-align: center; }
         
-        /* 왼쪽 메인 차트는 세로로 길게 (2행 차지) */
-        .main-chart { grid-row: span 2; }
-        
-        canvas { width: 100% !important; height: 100% !important; }
-        h3 { margin: 0 0 10px 0; font-size: 1em; color: #8b949e; }
+        /* 테이블 색상 강조 */
+        .text-call { color: #4caf50; font-weight: bold; }
+        .text-put { color: #ff5252; font-weight: bold; }
+        tr:hover { background-color: #2a2a2a; }
+
+        /* 유틸리티 */
+        h2 { margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .loading { text-align: center; padding: 50px; color: #888; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 style="text-align:center; color:#238636;">🚀 OSCC Strategic Command Center</h1>
-        <div id="app"></div>
+
+    <div class="controls">
+        <div>
+            <label for="tickerSelect">Ticker:</label>
+            <select id="tickerSelect"></select>
+        </div>
+        <div>
+            <label for="expirySelect">Expiry Date:</label>
+            <select id="expirySelect"></select>
+        </div>
+    </div>
+
+    <div class="chart-box">
+        <div id="gexChart"></div>
+    </div>
+
+    <div class="table-container">
+        <h2>📊 Option Chain Details</h2>
+        <table id="optionTable">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Strike</th>
+                    <th>GEX (Notional)</th>
+                    <th>OI</th>
+                    <th>Volume</th>
+                    <th>IV</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
     </div>
 
     <script>
-        async function renderDashboard() {
-            const response = await fetch('./dashboard_data.json');
-            const data = await response.json();
-            const tickers = [...new Set(data.map(d => d.ticker))];
-            const app = document.getElementById('app');
+        let rawData = [];
 
-            tickers.forEach(ticker => {
-                const tData = data.filter(d => d.ticker === ticker);
-                const lastData = tData[tData.length - 1]; // 최신 데이터
+        async function initDashboard() {
+            try {
+                // 데이터 로드
+                const response = await fetch('dashboard_gex_details.json');
+                rawData = await response.json();
+
+                // 종목(Ticker) 목록 추출 및 드롭다운 채우기
+                const tickers = [...new Set(rawData.map(d => d.ticker))].sort();
+                const tickerSelect = document.getElementById('tickerSelect');
                 
-                // 최신 상세 OI 구조 파싱
-                let oiData = { strikes: [], call_oi: [], put_oi: [] };
-                if (lastData.oi_structure) {
-                    try { oiData = JSON.parse(lastData.oi_structure); } catch(e) {}
+                tickers.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.text = `$${t}`;
+                    tickerSelect.appendChild(opt);
+                });
+
+                // 이벤트 리스너 등록
+                tickerSelect.addEventListener('change', updateExpiryDropdown);
+                document.getElementById('expirySelect').addEventListener('change', renderView);
+
+                // 초기 실행
+                if (tickers.length > 0) {
+                    updateExpiryDropdown();
                 }
 
-                // 섹션 생성
-                const section = document.createElement('div');
-                section.className = 'ticker-section';
-                section.innerHTML = `
-                    <div class="ticker-header">
-                        <div class="ticker-title">$${ticker}</div>
-                        <div class="ticker-price">Current: $${lastData.price.toFixed(2)}</div>
-                    </div>
-                    <div class="dashboard-grid">
-                        <div class="chart-card main-chart">
-                            <h3>Price Action & Net GEX History</h3>
-                            <canvas id="c1-${ticker}"></canvas>
-                        </div>
-                        <div class="chart-card">
-                            <h3>⚔️ Battlefield Map (OI Profile)</h3>
-                            <canvas id="c2-${ticker}"></canvas>
-                        </div>
-                        <div class="chart-card">
-                            <h3>Sentiment (Skew & PCR)</h3>
-                            <canvas id="c3-${ticker}"></canvas>
-                        </div>
-                    </div>
+            } catch (error) {
+                document.querySelector('.chart-box').innerHTML = `<div class="loading">❌ 데이터 로드 실패: ${error.message}</div>`;
+            }
+        }
+
+        // 종목이 바뀌면 만기일 목록을 업데이트
+        function updateExpiryDropdown() {
+            const selectedTicker = document.getElementById('tickerSelect').value;
+            const expirySelect = document.getElementById('expirySelect');
+            expirySelect.innerHTML = ''; // 초기화
+
+            // 해당 종목의 데이터만 필터링
+            const tickerData = rawData.filter(d => d.ticker === selectedTicker);
+            // 만기일 목록 추출 (중복제거 + 정렬)
+            const expiries = [...new Set(tickerData.map(d => d.expiry))].sort();
+
+            expiries.forEach(date => {
+                const opt = document.createElement('option');
+                opt.value = date;
+                opt.text = date;
+                expirySelect.appendChild(opt);
+            });
+
+            // 만기일이 채워졌으면 화면 렌더링
+            if (expiries.length > 0) renderView();
+        }
+
+        // 차트와 테이블을 그리는 메인 함수
+        function renderView() {
+            const ticker = document.getElementById('tickerSelect').value;
+            const expiry = document.getElementById('expirySelect').value;
+            
+            // 데이터 필터링 (종목 + 만기일)
+            const currentData = rawData.filter(d => d.ticker === ticker && d.expiry === expiry);
+            
+            // 행사가(Strike) 기준으로 정렬
+            currentData.sort((a, b) => a.strike - b.strike);
+
+            drawChart(currentData, ticker, expiry);
+            drawTable(currentData);
+        }
+
+        // Plotly 차트 그리기
+        function drawChart(data, ticker, expiry) {
+            const calls = data.filter(d => d.type === 'call');
+            const puts = data.filter(d => d.type === 'put');
+
+            const traceCall = {
+                x: calls.map(d => d.strike),
+                y: calls.map(d => d.gex_notional),
+                name: 'Call GEX',
+                type: 'bar',
+                marker: { color: '#00e676' } // 밝은 초록
+            };
+
+            const tracePut = {
+                x: puts.map(d => d.strike),
+                y: puts.map(d => d.gex_notional), // 이미 음수값
+                name: 'Put GEX',
+                type: 'bar',
+                marker: { color: '#ff1744' } // 밝은 빨강
+            };
+
+            const layout = {
+                title: { text: `$${ticker} Gamma Exposure - ${expiry}`, font: { color: '#fff' } },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#aaa' },
+                xaxis: { title: 'Strike Price', gridcolor: '#333' },
+                yaxis: { title: 'Net Gamma Exposure ($)', gridcolor: '#333' },
+                barmode: 'relative',
+                margin: { t: 40, b: 40, l: 60, r: 20 },
+                hovermode: 'x unified'
+            };
+
+            Plotly.newPlot('gexChart', [traceCall, tracePut], layout, {responsive: true});
+        }
+
+        // HTML 테이블 그리기
+        function drawTable(data) {
+            const tbody = document.querySelector('#optionTable tbody');
+            tbody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                const isCall = row.type === 'call';
+                const typeClass = isCall ? 'text-call' : 'text-put';
+                const typeLabel = isCall ? 'CALL' : 'PUT';
+
+                // 숫자 포맷팅 (쉼표 추가)
+                const fmt = (num) => num ? num.toLocaleString() : '0';
+                const gexFmt = (num) => num ? Math.round(num).toLocaleString() : '0';
+                const ivFmt = (num) => num ? (num * 100).toFixed(1) + '%' : '-';
+
+                tr.innerHTML = `
+                    <td class="text-center ${typeClass}">${typeLabel}</td>
+                    <td class="text-center"><b>$${row.strike}</b></td>
+                    <td style="color: ${row.gex_notional > 0 ? '#00e676' : '#ff1744'}">${gexFmt(row.gex_notional)}</td>
+                    <td>${fmt(row.openInterest)}</td>
+                    <td>${fmt(row.volume)}</td>
+                    <td>${ivFmt(row.impliedVolatility)}</td>
                 `;
-                app.appendChild(section);
-
-                // --- Chart 1: Price & GEX (메인) ---
-                new Chart(document.getElementById(`c1-${ticker}`), {
-                    type: 'line',
-                    data: {
-                        labels: tData.map(d => d.timestamp),
-                        datasets: [
-                            {
-                                label: 'Price', data: tData.map(d => d.price),
-                                borderColor: '#58a6ff', borderWidth: 2, yAxisID: 'y'
-                            },
-                            {
-                                label: 'Net GEX', data: tData.map(d => d.net_gex),
-                                type: 'bar', backgroundColor: tData.map(d => d.net_gex > 0 ? 'rgba(35, 134, 54, 0.5)' : 'rgba(218, 54, 51, 0.5)'),
-                                yAxisID: 'y1'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        scales: {
-                            y: { display: true, position: 'left', grid: { color: '#30363d' } },
-                            y1: { display: true, position: 'right', grid: { drawOnChartArea: false } }
-                        }
-                    }
-                });
-
-                // --- Chart 2: OI Battlefield (가로 막대) ---
-                new Chart(document.getElementById(`c2-${ticker}`), {
-                    type: 'bar',
-                    data: {
-                        labels: oiData.strikes,
-                        datasets: [
-                            {
-                                label: 'Call OI (Resistance)', data: oiData.call_oi,
-                                backgroundColor: 'rgba(35, 134, 54, 0.7)', indexAxis: 'y'
-                            },
-                            {
-                                label: 'Put OI (Support)', data: oiData.put_oi,
-                                backgroundColor: 'rgba(218, 54, 51, 0.7)', indexAxis: 'y'
-                            }
-                        ]
-                    },
-                    options: {
-                        indexAxis: 'y', // 가로 막대
-                        responsive: true, maintainAspectRatio: false,
-                        scales: {
-                            x: { stacked: false, grid: { color: '#30363d' } },
-                            y: { stacked: true, grid: { display: false } } // 행사가
-                        },
-                        plugins: { legend: { position: 'top' } }
-                    }
-                });
-
-                // --- Chart 3: Sentiment (Skew) ---
-                // 과거 데이터에서 Skew가 0인(백필된) 구간은 제외하고 그리기
-                const validSkewData = tData.filter(d => d.skew !== 0);
-                new Chart(document.getElementById(`c3-${ticker}`), {
-                    type: 'line',
-                    data: {
-                        labels: validSkewData.map(d => d.timestamp),
-                        datasets: [{
-                            label: 'IV Skew (Put/Call)',
-                            data: validSkewData.map(d => d.skew),
-                            borderColor: '#a371f7',
-                            backgroundColor: 'rgba(163, 113, 247, 0.1)',
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        scales: { y: { grid: { color: '#30363d' } } }
-                    }
-                });
+                tbody.appendChild(tr);
             });
         }
-        renderDashboard();
+
+        // 시작
+        initDashboard();
     </script>
 </body>
 </html>
