@@ -21,11 +21,27 @@
         .ribbon-btn:hover { border-color: var(--accent); color: white; }
         .ribbon-btn.active { background: var(--accent); color: white; border-color: var(--accent); font-weight: bold; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
 
-        /* AI 카드 */
-        .ai-card { background: linear-gradient(180deg, rgba(30,41,59,0.9) 0%, rgba(15,23,42,1) 100%); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-        .ai-title { font-size: 20px; font-weight: bold; color: var(--accent); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .ai-body { font-size: 16px; line-height: 1.7; color: #cbd5e1; white-space: pre-line; }
-        .badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #334155; color: white; margin-left: auto; }
+        /* ⭐ [핵심 수정] AI 리포트 카드 (가독성 강화) */
+        .ai-card { 
+            background: linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,1) 100%); 
+            border: 1px solid #475569; 
+            border-left: 5px solid var(--accent); 
+            border-radius: 12px; 
+            padding: 30px; /* 패딩 넓힘 */
+            margin-bottom: 40px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
+        .ai-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .ai-title { font-size: 22px; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+        /* 본문 스타일: 줄간격 넓히고, 줄바꿈 보존 */
+        .ai-body { 
+            font-size: 16px; 
+            line-height: 1.8; 
+            color: #e2e8f0; 
+            white-space: pre-wrap; /* 줄바꿈 및 들여쓰기 보존 */
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .badge { font-size: 13px; padding: 6px 12px; border-radius: 20px; background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
 
         /* 차트 */
         .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 20px; height: 500px; position: relative; }
@@ -40,7 +56,7 @@
         .tf-btn { background: transparent; color: var(--subtext); border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 12px; font-weight: 600; }
         .tf-btn.active { background: var(--accent); color: white; }
 
-        .table-scroll { overflow-x: auto; max-height: 500px; scroll-behavior: smooth; position: relative; } /* smooth scroll */
+        .table-scroll { overflow-x: auto; max-height: 600px; scroll-behavior: smooth; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
         th { background: #0f172a; color: var(--subtext); padding: 12px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; text-align: center; }
         
@@ -51,14 +67,11 @@
         td { padding: 8px 8px; border-bottom: 1px solid #334155; white-space: nowrap; }
         .col-call { text-align: right; color: #cbd5e1; } .col-put { text-align: left; color: #cbd5e1; }
         .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; width: 80px; }
-        .val-call { color: var(--call); } .val-put { color: var(--put); }
         
-        /* 변화량 색상 */
         .diff-pos { color: var(--call); font-weight: bold; }
         .diff-neg { color: var(--put); font-weight: bold; }
         .diff-neu { color: #64748b; }
 
-        /* 현재가 행 (스크롤 타겟) */
         .current-price-row td { background-color: rgba(255, 215, 0, 0.15); color: #ffd700; font-weight: bold; text-align: center; border-top: 1px dashed #ffd700; border-bottom: 1px dashed #ffd700; padding: 10px 0; font-size: 14px; }
         .atm-row { background-color: rgba(255, 255, 255, 0.05); }
     </style>
@@ -74,11 +87,15 @@
     <div id="ribbonMenu" class="ribbon-container"></div>
 
     <div class="ai-card" id="aiSection">
-        <div class="ai-title">
-            <span>🤖 AI Tactical Insight</span>
-            <span class="badge" id="aiExpiryBadge">Target: --</span>
+        <div class="ai-header">
+            <div class="ai-title">
+                <span>🤖 OSCC Strategy Report</span>
+            </div>
+            <span class="badge" id="aiExpiryBadge">📅 Multi-Horizon View</span>
         </div>
-        <div class="ai-body" id="aiBody">Loading detailed analysis...</div>
+        <div class="ai-body" id="aiBody">
+            Loading comprehensive market analysis...
+        </div>
     </div>
 
     <div class="chart-box">
@@ -99,7 +116,8 @@
                 <button class="tf-btn" onclick="setTF('1w', this)">1W Δ</button>
             </div>
         </div>
-        <div class="table-scroll" id="tableContainer"> <table id="chainTable">
+        <div class="table-scroll" id="tableContainer">
+            <table id="chainTable">
                 <thead>
                     <tr>
                         <th class="group-call">GEX</th><th class="group-call">OI</th><th class="group-call">Vol</th><th class="group-call">IV</th>
@@ -145,14 +163,15 @@
         ribbon.innerHTML = '';
         
         const expiries = [...new Set(rawData.filter(d => d.ticker === currentTicker).map(d => d.expiry))].sort();
-        const aiTargetDate = aiData[currentTicker] ? aiData[currentTicker].expiry : null;
-
+        
+        // AI가 Multi-Term이라서 특정 타겟 날짜가 없을 수 있음.
+        // 이 경우 그냥 가장 가까운 '월물'을 찾거나, 첫 번째 날짜를 기본값으로 함.
+        
         expiries.forEach((date, idx) => {
             const btn = document.createElement('div');
             btn.className = 'ribbon-btn'; 
             btn.innerText = date;
-            if (date === aiTargetDate) btn.dataset.isTarget = "true";
-
+            
             btn.onclick = () => { 
                 document.querySelectorAll('.ribbon-btn').forEach(b=>b.classList.remove('active')); 
                 btn.classList.add('active'); 
@@ -162,11 +181,8 @@
             ribbon.appendChild(btn);
         });
 
-        if (reset) {
-            const targetBtn = ribbon.querySelector('[data-is-target="true"]');
-            if (targetBtn) targetBtn.click();
-            else if (ribbon.firstChild) ribbon.firstChild.click();
-        }
+        // 리셋 시 첫 번째 만기일 자동 선택 (또는 로직에 따라 변경 가능)
+        if (reset && ribbon.firstChild) ribbon.firstChild.click();
     }
 
     function setTF(tf, btn) {
@@ -195,7 +211,11 @@
     function updateAI(price) {
         const info = aiData[currentTicker];
         if (info) {
-            document.getElementById('aiExpiryBadge').innerText = `Target: ${info.expiry || 'N/A'}`;
+            // [수정] 배지는 항상 'Multi-Horizon View'로 고정하거나 AI가 준 값 사용
+            const expiryText = (info.expiry === "Multi-Term") ? "📅 Multi-Horizon Strategy" : `Target: ${info.expiry}`;
+            document.getElementById('aiExpiryBadge').innerText = expiryText;
+            
+            // [수정] 상세 리포트 출력
             document.getElementById('aiBody').innerHTML = `<strong>[${info.sentiment}] ${info.title}</strong>\n\n${info.body}`;
         } else {
             document.getElementById('aiBody').innerText = "AI Analysis not available.";
@@ -255,14 +275,11 @@
         };
 
         let priceInserted = false;
-        let targetElement = null; // ⭐ 스크롤 타겟
+        let targetElement = null;
 
         const appendRow = (html, isTarget) => {
             const tr = document.createElement('tr');
-            if(isTarget) { 
-                tr.className = 'current-price-row'; 
-                targetElement = tr; 
-            }
+            if(isTarget) { tr.className = 'current-price-row'; targetElement = tr; }
             tr.innerHTML = html;
             tbody.appendChild(tr);
         }
@@ -297,13 +314,11 @@
             appendRow(`<td colspan="9">⚡ Current Price: $${price.toFixed(2)} ⚡</td>`, true);
         }
 
-        // ⭐ [핵심 수정] 내부 컨테이너만 부드럽게 스크롤
+        // 자동 스크롤 (컨테이너 내부만)
         if (targetElement) {
             setTimeout(() => {
                 const container = document.getElementById('tableContainer');
-                // 타겟 행의 위치 계산 (테이블 내 상대 위치)
                 const topPos = targetElement.offsetTop;
-                // 컨테이너의 절반 높이만큼 빼서 중앙에 위치시킴
                 container.scrollTo({
                     top: topPos - (container.clientHeight / 2) + (targetElement.clientHeight / 2),
                     behavior: 'smooth'
