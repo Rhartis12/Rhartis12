@@ -14,66 +14,61 @@
         /* 헤더 & 리본 */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        select#tickerSelect { background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; outline: none; }
+        select#tickerSelect { background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; outline: none; font-size: 16px; }
         
-        .ribbon-container { overflow-x: auto; white-space: nowrap; padding-bottom: 10px; margin-bottom: 20px; }
-        .ribbon-btn { display: inline-block; background: var(--card); color: var(--subtext); border: 1px solid var(--border); padding: 8px 16px; margin-right: 8px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .ribbon-container { overflow-x: auto; white-space: nowrap; padding-bottom: 10px; margin-bottom: 20px; -webkit-overflow-scrolling: touch; }
+        .ribbon-btn { display: inline-block; background: var(--card); color: var(--subtext); border: 1px solid var(--border); padding: 8px 16px; margin-right: 8px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.2s; white-space: nowrap; }
         .ribbon-btn:hover { border-color: var(--accent); color: white; }
         .ribbon-btn.active { background: var(--accent); color: white; border-color: var(--accent); font-weight: bold; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
 
-        /* ⭐ [핵심 수정] AI 리포트 카드 (가독성 강화) */
-        .ai-card { 
-            background: linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,1) 100%); 
-            border: 1px solid #475569; 
-            border-left: 5px solid var(--accent); 
-            border-radius: 12px; 
-            padding: 30px; /* 패딩 넓힘 */
-            margin-bottom: 40px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-        }
-        .ai-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-        .ai-title { font-size: 22px; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 10px; }
-        /* 본문 스타일: 줄간격 넓히고, 줄바꿈 보존 */
-        .ai-body { 
-            font-size: 16px; 
-            line-height: 1.8; 
-            color: #e2e8f0; 
-            white-space: pre-wrap; /* 줄바꿈 및 들여쓰기 보존 */
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .badge { font-size: 13px; padding: 6px 12px; border-radius: 20px; background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+        /* AI 카드 */
+        .ai-card { background: linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,1) 100%); border: 1px solid #475569; border-left: 5px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .ai-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .ai-title { font-size: 20px; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .ai-body { font-size: 15px; line-height: 1.7; color: #e2e8f0; white-space: pre-wrap; font-family: 'Segoe UI', sans-serif; word-break: break-word; }
+        .badge { font-size: 12px; padding: 5px 10px; border-radius: 20px; background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); white-space: nowrap; }
 
         /* 차트 */
-        .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 20px; height: 500px; position: relative; }
-        .chart-title { position: absolute; top: 15px; left: 20px; font-weight: bold; color: var(--subtext); z-index: 10; pointer-events: none; }
+        .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 20px; height: 450px; position: relative; }
+        .chart-title { position: absolute; top: 10px; left: 15px; font-weight: bold; color: var(--subtext); z-index: 10; pointer-events: none; font-size: 14px; }
 
         /* 테이블 */
-        .table-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        .table-header { padding: 15px 20px; font-weight: bold; border-bottom: 1px solid var(--border); background: #253347; display: flex; justify-content: space-between; align-items: center; }
+        .table-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 50px; }
+        .table-header { padding: 15px; border-bottom: 1px solid var(--border); background: #253347; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         
-        /* 타임프레임 스위치 */
         .tf-group { display: flex; background: #0f172a; border-radius: 6px; padding: 2px; border: 1px solid var(--border); }
         .tf-btn { background: transparent; color: var(--subtext); border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 12px; font-weight: 600; }
         .tf-btn.active { background: var(--accent); color: white; }
 
-        .table-scroll { overflow-x: auto; max-height: 600px; scroll-behavior: smooth; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
-        th { background: #0f172a; color: var(--subtext); padding: 12px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; text-align: center; }
+        .table-scroll { overflow-x: auto; max-height: 600px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 800px; }
+        th { background: #0f172a; color: var(--subtext); padding: 10px 6px; font-weight: 600; position: sticky; top: 0; z-index: 5; text-align: center; }
         
         th.group-call { border-bottom: 2px solid var(--call); color: var(--call); }
         th.group-put { border-bottom: 2px solid var(--put); color: var(--put); }
         th.group-strike { border-bottom: 2px solid #fff; color: white; background: #1e293b; }
         
-        td { padding: 8px 8px; border-bottom: 1px solid #334155; white-space: nowrap; }
-        .col-call { text-align: right; color: #cbd5e1; } .col-put { text-align: left; color: #cbd5e1; }
-        .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; width: 80px; }
-        
+        td { padding: 8px 6px; border-bottom: 1px solid #334155; white-space: nowrap; text-align: right; }
+        .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; min-width: 60px; }
+        .val-call { color: var(--call); } .val-put { color: var(--put); }
+        .col-put { text-align: left; }
+
         .diff-pos { color: var(--call); font-weight: bold; }
         .diff-neg { color: var(--put); font-weight: bold; }
         .diff-neu { color: #64748b; }
 
-        .current-price-row td { background-color: rgba(255, 215, 0, 0.15); color: #ffd700; font-weight: bold; text-align: center; border-top: 1px dashed #ffd700; border-bottom: 1px dashed #ffd700; padding: 10px 0; font-size: 14px; }
+        .current-price-row td { background-color: rgba(255, 215, 0, 0.15); color: #ffd700; font-weight: bold; text-align: center; border-top: 1px dashed #ffd700; border-bottom: 1px dashed #ffd700; padding: 8px 0; font-size: 13px; }
         .atm-row { background-color: rgba(255, 255, 255, 0.05); }
+
+        /* 모바일 미디어 쿼리 */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            h1 { font-size: 20px; }
+            .ai-card { padding: 15px; }
+            .ai-title { font-size: 18px; }
+            .chart-box { height: 400px; padding: 5px; }
+            .table-header span { font-size: 14px; font-weight: bold; }
+        }
     </style>
 </head>
 <body>
@@ -89,27 +84,25 @@
     <div class="ai-card" id="aiSection">
         <div class="ai-header">
             <div class="ai-title">
-                <span>🤖 OSCC Strategy Report</span>
+                <span>🤖 Strategy Report</span>
             </div>
-            <span class="badge" id="aiExpiryBadge">📅 Multi-Horizon View</span>
+            <span class="badge" id="aiExpiryBadge">📅 Multi-Horizon</span>
         </div>
-        <div class="ai-body" id="aiBody">
-            Loading comprehensive market analysis...
-        </div>
+        <div class="ai-body" id="aiBody">Loading analysis...</div>
     </div>
 
     <div class="chart-box">
-        <div class="chart-title">📊 Net Gamma Exposure (GEX Map)</div>
+        <div class="chart-title">📊 Net Gamma (GEX)</div>
         <div id="chartGEX" style="width:100%; height:100%;"></div>
     </div>
     <div class="chart-box">
-        <div class="chart-title">🧱 Open Interest Walls (OI)</div>
+        <div class="chart-title">🧱 Open Interest (OI)</div>
         <div id="chartOI" style="width:100%; height:100%;"></div>
     </div>
 
     <div class="table-section">
         <div class="table-header">
-            <span>📋 Option Chain Details</span>
+            <span>📋 Details</span>
             <div class="tf-group">
                 <button class="tf-btn active" onclick="setTF('curr', this)">Current</button>
                 <button class="tf-btn" onclick="setTF('1d', this)">1D Δ</button>
@@ -163,15 +156,14 @@
         ribbon.innerHTML = '';
         
         const expiries = [...new Set(rawData.filter(d => d.ticker === currentTicker).map(d => d.expiry))].sort();
-        
-        // AI가 Multi-Term이라서 특정 타겟 날짜가 없을 수 있음.
-        // 이 경우 그냥 가장 가까운 '월물'을 찾거나, 첫 번째 날짜를 기본값으로 함.
-        
+        const aiTargetDate = aiData[currentTicker] ? aiData[currentTicker].expiry : null;
+
         expiries.forEach((date, idx) => {
             const btn = document.createElement('div');
             btn.className = 'ribbon-btn'; 
             btn.innerText = date;
-            
+            if (date === aiTargetDate) btn.dataset.isTarget = "true";
+
             btn.onclick = () => { 
                 document.querySelectorAll('.ribbon-btn').forEach(b=>b.classList.remove('active')); 
                 btn.classList.add('active'); 
@@ -181,8 +173,11 @@
             ribbon.appendChild(btn);
         });
 
-        // 리셋 시 첫 번째 만기일 자동 선택 (또는 로직에 따라 변경 가능)
-        if (reset && ribbon.firstChild) ribbon.firstChild.click();
+        if (reset) {
+            const targetBtn = ribbon.querySelector('[data-is-target="true"]');
+            if (targetBtn) targetBtn.click();
+            else if (ribbon.firstChild) ribbon.firstChild.click();
+        }
     }
 
     function setTF(tf, btn) {
@@ -211,11 +206,8 @@
     function updateAI(price) {
         const info = aiData[currentTicker];
         if (info) {
-            // [수정] 배지는 항상 'Multi-Horizon View'로 고정하거나 AI가 준 값 사용
-            const expiryText = (info.expiry === "Multi-Term") ? "📅 Multi-Horizon Strategy" : `Target: ${info.expiry}`;
+            const expiryText = (info.expiry === "Multi-Term Strategy" || info.expiry === "Multi-Horizon View") ? "📅 Multi-Horizon Strategy" : `Target: ${info.expiry}`;
             document.getElementById('aiExpiryBadge').innerText = expiryText;
-            
-            // [수정] 상세 리포트 출력
             document.getElementById('aiBody').innerHTML = `<strong>[${info.sentiment}] ${info.title}</strong>\n\n${info.body}`;
         } else {
             document.getElementById('aiBody').innerText = "AI Analysis not available.";
@@ -223,6 +215,9 @@
     }
 
     function drawCharts(data, price) {
+        // 모바일 감지
+        const isMobile = window.innerWidth < 768;
+
         const strikeMap = new Map();
         data.forEach(d => strikeMap.set(d.strike, (strikeMap.get(d.strike)||0) + Math.abs(d.gex_notional)));
         const topStrikes = Array.from(strikeMap.entries()).sort((a,b)=>b[1]-a[1]).slice(0,40).map(e=>e[0]);
@@ -231,23 +226,39 @@
         const calls = filtered.filter(d => d.type === 'call').sort((a,b) => a.strike - b.strike);
         const puts = filtered.filter(d => d.type === 'put').sort((a,b) => a.strike - b.strike);
 
+        // ⭐ [모바일 최적화] 차트 레이아웃
         const layout = {
             barmode: 'relative', paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-            font: {color: '#94a3b8'}, margin: {t:40, b:30, l:60, r:20},
-            xaxis: {gridcolor: '#334155', zerolinecolor: '#fff'},
-            yaxis: {gridcolor: '#334155', tickformat: '.1f'},
+            font: { color: '#94a3b8', size: isMobile ? 10 : 12 }, 
+            // 여백 축소: 왼쪽 여백(l)을 줄여서 그래프 공간 확보
+            margin: { t: 40, b: 30, l: isMobile ? 35 : 60, r: isMobile ? 10 : 20 },
+            xaxis: { 
+                gridcolor: '#334155', zerolinecolor: '#fff', 
+                // 모바일에서는 X축 제목 생략
+                title: isMobile ? '' : 'Net Gamma ($)' 
+            },
+            yaxis: { 
+                gridcolor: '#334155', tickformat: '.1f',
+                automargin: true // 라벨 자동 여백
+            },
+            // 범례 상단 이동
+            legend: { orientation: 'h', y: 1.1, x: 0.5, xanchor: 'center' },
             shapes: price > 0 ? [{type:'line', x0:0, x1:1, xref:'paper', y0:price, y1:price, yref:'y', line:{color:'#ffd700', width:2, dash:'dot'}}] : []
         };
 
         Plotly.newPlot('chartGEX', [
             { x: puts.map(d=>d.gex_notional), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put', marker:{color:'#ef4444'} },
             { x: calls.map(d=>d.gex_notional), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call', marker:{color:'#10b981'} }
-        ], {...layout, xaxis:{...layout.xaxis, title:'Net Gamma ($)'}}, {responsive:true, displayModeBar:false});
+        ], layout, {responsive:true, displayModeBar:false});
+
+        // OI 차트도 동일 레이아웃 적용 (단, X축 타이틀만 변경)
+        const layoutOI = JSON.parse(JSON.stringify(layout)); // Deep copy
+        if (!isMobile) layoutOI.xaxis.title = 'Open Interest';
 
         Plotly.newPlot('chartOI', [
             { x: puts.map(d=>d.openInterest), y: puts.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Put', marker:{color:'#dc2626', opacity:0.7} },
             { x: calls.map(d=>d.openInterest), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call', marker:{color:'#059669', opacity:0.7} }
-        ], {...layout, xaxis:{...layout.xaxis, title:'Open Interest'}}, {responsive:true, displayModeBar:false});
+        ], layoutOI, {responsive:true, displayModeBar:false});
     }
 
     function drawTable(data, price) {
@@ -314,7 +325,6 @@
             appendRow(`<td colspan="9">⚡ Current Price: $${price.toFixed(2)} ⚡</td>`, true);
         }
 
-        // 자동 스크롤 (컨테이너 내부만)
         if (targetElement) {
             setTimeout(() => {
                 const container = document.getElementById('tableContainer');
