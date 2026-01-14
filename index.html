@@ -7,7 +7,7 @@
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- 테마 설정 --- */
-        :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --subtext: #94a3b8; --border: #334155; --call: #10b981; --put: #ef4444; --accent: #3b82f6; }
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --subtext: #94a3b8; --border: #334155; --call: #10b981; --put: #ef4444; --accent: #3b82f6; --whale: #8b5cf6; }
         body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; margin: 0; padding: 0; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         
@@ -22,28 +22,34 @@
         .ribbon-btn.active { background: var(--accent); color: white; border-color: var(--accent); font-weight: bold; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
 
         /* AI 카드 */
-        .ai-card { background: linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,1) 100%); border: 1px solid #475569; border-left: 5px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .ai-card { background: linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,1) 100%); border: 1px solid #475569; border-left: 5px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .ai-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
         .ai-title { font-size: 20px; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 8px; }
         .ai-body { font-size: 15px; line-height: 1.7; color: #e2e8f0; white-space: pre-wrap; font-family: 'Segoe UI', sans-serif; word-break: break-word; }
         .badge { font-size: 12px; padding: 5px 10px; border-radius: 20px; background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); white-space: nowrap; }
 
-        /* 차트 */
+        /* ⭐ [신규] Market Vitals (Max Pain, Range) */
+        .vitals-container { display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; }
+        .vital-card { flex: 1; min-width: 140px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 15px; text-align: center; }
+        .vital-label { font-size: 12px; color: var(--subtext); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .vital-value { font-size: 18px; font-weight: bold; color: white; }
+        .vital-sub { font-size: 11px; color: #64748b; margin-top: 3px; }
+
+        /* 차트 & 테이블 */
         .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 20px; height: 450px; position: relative; }
         .chart-title { position: absolute; top: 10px; left: 15px; font-weight: bold; color: var(--subtext); z-index: 10; pointer-events: none; font-size: 14px; }
 
-        /* 테이블 */
-        .table-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 50px; }
+        .table-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 30px; }
         .table-header { padding: 15px; border-bottom: 1px solid var(--border); background: #253347; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .table-title { font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
         .tf-group { display: flex; background: #0f172a; border-radius: 6px; padding: 2px; border: 1px solid var(--border); }
         .tf-btn { background: transparent; color: var(--subtext); border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 12px; font-weight: 600; }
         .tf-btn.active { background: var(--accent); color: white; }
 
-        .table-scroll { overflow-x: auto; max-height: 600px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .table-scroll { overflow-x: auto; max-height: 500px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 800px; }
         th { background: #0f172a; color: var(--subtext); padding: 10px 6px; font-weight: 600; position: sticky; top: 0; z-index: 5; text-align: center; }
-        
         th.group-call { border-bottom: 2px solid var(--call); color: var(--call); }
         th.group-put { border-bottom: 2px solid var(--put); color: var(--put); }
         th.group-strike { border-bottom: 2px solid #fff; color: white; background: #1e293b; }
@@ -52,22 +58,25 @@
         .col-strike { text-align: center; font-weight: bold; background: #253347; color: white; min-width: 60px; }
         .val-call { color: var(--call); } .val-put { color: var(--put); }
         .col-put { text-align: left; }
-
         .diff-pos { color: var(--call); font-weight: bold; }
         .diff-neg { color: var(--put); font-weight: bold; }
         .diff-neu { color: #64748b; }
-
         .current-price-row td { background-color: rgba(255, 215, 0, 0.15); color: #ffd700; font-weight: bold; text-align: center; border-top: 1px dashed #ffd700; border-bottom: 1px dashed #ffd700; padding: 8px 0; font-size: 13px; }
         .atm-row { background-color: rgba(255, 255, 255, 0.05); }
 
-        /* 모바일 미디어 쿼리 */
+        /* ⭐ [신규] 고래 테이블 스타일 */
+        .whale-row-call { border-left: 4px solid var(--call); background: rgba(16, 185, 129, 0.05); }
+        .whale-row-put { border-left: 4px solid var(--put); background: rgba(239, 68, 68, 0.05); }
+        .whale-tag { padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .tag-call { background: rgba(16, 185, 129, 0.2); color: var(--call); }
+        .tag-put { background: rgba(239, 68, 68, 0.2); color: var(--put); }
+
         @media (max-width: 768px) {
             .container { padding: 10px; }
             h1 { font-size: 20px; }
-            .ai-card { padding: 15px; }
-            .ai-title { font-size: 18px; }
             .chart-box { height: 400px; padding: 5px; }
-            .table-header span { font-size: 14px; font-weight: bold; }
+            .vitals-container { gap: 10px; }
+            .vital-card { min-width: 45%; padding: 10px; }
         }
     </style>
 </head>
@@ -83,13 +92,14 @@
 
     <div class="ai-card" id="aiSection">
         <div class="ai-header">
-            <div class="ai-title">
-                <span>🤖 Strategy Report</span>
-            </div>
+            <div class="ai-title"><span>🤖 Strategy Report</span></div>
             <span class="badge" id="aiExpiryBadge">📅 Multi-Horizon</span>
         </div>
         <div class="ai-body" id="aiBody">Loading analysis...</div>
     </div>
+
+    <div class="vitals-container" id="vitalsArea">
+        </div>
 
     <div class="chart-box">
         <div class="chart-title">📊 Net Gamma (GEX)</div>
@@ -102,7 +112,7 @@
 
     <div class="table-section">
         <div class="table-header">
-            <span>📋 Details</span>
+            <span class="table-title">📋 Option Chain</span>
             <div class="tf-group">
                 <button class="tf-btn active" onclick="setTF('curr', this)">Current</button>
                 <button class="tf-btn" onclick="setTF('1d', this)">1D Δ</button>
@@ -122,23 +132,48 @@
             </table>
         </div>
     </div>
+
+    <div class="table-section">
+        <div class="table-header">
+            <span class="table-title">🐋 Whale Alerts (Vol > OI)</span>
+        </div>
+        <div class="table-scroll">
+            <table id="whaleTable" style="min-width: 600px;">
+                <thead>
+                    <tr>
+                        <th>Time/Exp</th>
+                        <th>Type</th>
+                        <th>Strike</th>
+                        <th>Volume</th>
+                        <th>OI</th>
+                        <th>Ratio</th>
+                        <th>Notional</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
-    let rawData = [], aiData = {}, summaryData = [];
+    let rawData = [], aiData = {}, summaryData = [], whaleData = [];
     let currentTF = 'curr'; 
     let currentTicker = '', currentExpiry = '';
 
     async function init() {
         try {
-            const [resGex, resAi, resSum] = await Promise.all([
+            // ⭐ [추가] whaleData 로드
+            const [resGex, resAi, resSum, resWhale] = await Promise.all([
                 fetch('dashboard_gex_details.json'), 
                 fetch('dashboard_ai.json'),
-                fetch('dashboard_summary.json')
+                fetch('dashboard_summary.json'),
+                fetch('dashboard_whales.json').catch(()=>({json:()=>[]})) // 파일 없으면 빈배열
             ]);
             rawData = await resGex.json(); 
             aiData = await resAi.json();
             summaryData = await resSum.json();
+            whaleData = await resWhale.json();
 
             const tickers = [...new Set(rawData.map(d => d.ticker))].sort();
             const sel = document.getElementById('tickerSelect');
@@ -156,14 +191,15 @@
         ribbon.innerHTML = '';
         
         const expiries = [...new Set(rawData.filter(d => d.ticker === currentTicker).map(d => d.expiry))].sort();
-        const aiTargetDate = aiData[currentTicker] ? aiData[currentTicker].expiry : null;
-
+        
+        // AI 데이터에서 대표 만기일(Target) 있는지 확인
+        // (현재 Python 코드는 'Multi-Term' 등으로 줄 수 있음)
+        // 기본적으로 첫 번째 만기일 선택
+        
         expiries.forEach((date, idx) => {
             const btn = document.createElement('div');
             btn.className = 'ribbon-btn'; 
             btn.innerText = date;
-            if (date === aiTargetDate) btn.dataset.isTarget = "true";
-
             btn.onclick = () => { 
                 document.querySelectorAll('.ribbon-btn').forEach(b=>b.classList.remove('active')); 
                 btn.classList.add('active'); 
@@ -173,11 +209,7 @@
             ribbon.appendChild(btn);
         });
 
-        if (reset) {
-            const targetBtn = ribbon.querySelector('[data-is-target="true"]');
-            if (targetBtn) targetBtn.click();
-            else if (ribbon.firstChild) ribbon.firstChild.click();
-        }
+        if (reset && ribbon.firstChild) ribbon.firstChild.click();
     }
 
     function setTF(tf, btn) {
@@ -189,35 +221,100 @@
 
     function renderDashboard(tableOnly = false) {
         let price = 0;
-        const sumInfo = summaryData.filter(d => d.ticker === currentTicker).pop();
+        // Summary 데이터에서 현재가 및 고급지표 가져오기
+        const sumInfo = summaryData.find(d => d.ticker === currentTicker);
         if(sumInfo) price = sumInfo.price;
-        else if(aiData[currentTicker]) price = aiData[currentTicker].price;
 
         const data = rawData.filter(d => d.ticker === currentTicker && d.expiry === currentExpiry);
         if(price === 0 && data.length > 0) price = data[0].strike; 
 
         if(!tableOnly) {
-            updateAI(price);
+            updateAI();
+            updateVitals(sumInfo); // ⭐ [신규] Vital 업데이트
             drawCharts(data, price);
+            drawWhales(); // ⭐ [신규] 고래 테이블 업데이트
         }
         drawTable(data, price);
     }
 
-    function updateAI(price) {
+    function updateAI() {
         const info = aiData[currentTicker];
         if (info) {
-            const expiryText = (info.expiry === "Multi-Term Strategy" || info.expiry === "Multi-Horizon View") ? "📅 Multi-Horizon Strategy" : `Target: ${info.expiry}`;
-            document.getElementById('aiExpiryBadge').innerText = expiryText;
+            document.getElementById('aiExpiryBadge').innerText = "📅 Multi-Horizon Strategy";
             document.getElementById('aiBody').innerHTML = `<strong>[${info.sentiment}] ${info.title}</strong>\n\n${info.body}`;
         } else {
             document.getElementById('aiBody').innerText = "AI Analysis not available.";
         }
     }
 
-    function drawCharts(data, price) {
-        // 모바일 감지
-        const isMobile = window.innerWidth < 768;
+    // ⭐ [신규] Max Pain & Expected Move 표시
+    function updateVitals(info) {
+        const div = document.getElementById('vitalsArea');
+        div.innerHTML = '';
+        if(!info) return;
 
+        // Mid Term 데이터가 가장 안정적이므로 대표값으로 사용
+        const midData = info.mid; 
+        if(!midData) return;
+
+        // Cards 생성 Helper
+        const createCard = (label, value, sub) => {
+            return `<div class="vital-card">
+                <div class="vital-label">${label}</div>
+                <div class="vital-value">${value}</div>
+                <div class="vital-sub">${sub}</div>
+            </div>`;
+        };
+
+        // 1. Current Price
+        div.innerHTML += createCard("Current Price", `$${info.price}`, "Real-time Update");
+
+        // 2. Max Pain (Mid Term)
+        if(midData.max_pain) {
+            div.innerHTML += createCard("Max Pain (Mid)", `$${midData.max_pain}`, "Pain Level");
+        }
+
+        // 3. Expected Range (Mid Term)
+        if(midData.expected_range) {
+            const [low, high] = midData.expected_range;
+            div.innerHTML += createCard("Exp. Move (Mid)", `$${low} ~ $${high}`, "±1σ Range");
+        }
+    }
+
+    function drawWhales() {
+        const tbody = document.querySelector('#whaleTable tbody');
+        tbody.innerHTML = '';
+        
+        // 현재 선택된 티커의 고래만 필터링
+        const whales = whaleData.filter(w => w.ticker === currentTicker);
+        
+        if(whales.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">No unusual activity detected.</td></tr>';
+            return;
+        }
+
+        whales.forEach(w => {
+            const tr = document.createElement('tr');
+            tr.className = w.type === 'call' ? 'whale-row-call' : 'whale-row-put';
+            
+            const typeTag = `<span class="whale-tag ${w.type==='call'?'tag-call':'tag-put'}">${w.type.toUpperCase()}</span>`;
+            const notionalStr = `$${(w.notional / 1000).toFixed(0)}k`; // k단위 변환
+
+            tr.innerHTML = `
+                <td>${w.expiry}</td>
+                <td style="text-align:center;">${typeTag}</td>
+                <td style="text-align:center; font-weight:bold;">$${w.strike}</td>
+                <td>${w.vol.toLocaleString()}</td>
+                <td>${w.oi.toLocaleString()}</td>
+                <td style="font-weight:bold; color:#ffd700;">${w.ratio}x</td>
+                <td>${notionalStr}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function drawCharts(data, price) {
+        const isMobile = window.innerWidth < 768;
         const strikeMap = new Map();
         data.forEach(d => strikeMap.set(d.strike, (strikeMap.get(d.strike)||0) + Math.abs(d.gex_notional)));
         const topStrikes = Array.from(strikeMap.entries()).sort((a,b)=>b[1]-a[1]).slice(0,40).map(e=>e[0]);
@@ -226,22 +323,12 @@
         const calls = filtered.filter(d => d.type === 'call').sort((a,b) => a.strike - b.strike);
         const puts = filtered.filter(d => d.type === 'put').sort((a,b) => a.strike - b.strike);
 
-        // ⭐ [모바일 최적화] 차트 레이아웃
         const layout = {
             barmode: 'relative', paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
             font: { color: '#94a3b8', size: isMobile ? 10 : 12 }, 
-            // 여백 축소: 왼쪽 여백(l)을 줄여서 그래프 공간 확보
             margin: { t: 40, b: 30, l: isMobile ? 35 : 60, r: isMobile ? 10 : 20 },
-            xaxis: { 
-                gridcolor: '#334155', zerolinecolor: '#fff', 
-                // 모바일에서는 X축 제목 생략
-                title: isMobile ? '' : 'Net Gamma ($)' 
-            },
-            yaxis: { 
-                gridcolor: '#334155', tickformat: '.1f',
-                automargin: true // 라벨 자동 여백
-            },
-            // 범례 상단 이동
+            xaxis: { gridcolor: '#334155', zerolinecolor: '#fff', title: isMobile ? '' : 'Net Gamma ($)' },
+            yaxis: { gridcolor: '#334155', tickformat: '.1f', automargin: true },
             legend: { orientation: 'h', y: 1.1, x: 0.5, xanchor: 'center' },
             shapes: price > 0 ? [{type:'line', x0:0, x1:1, xref:'paper', y0:price, y1:price, yref:'y', line:{color:'#ffd700', width:2, dash:'dot'}}] : []
         };
@@ -251,8 +338,7 @@
             { x: calls.map(d=>d.gex_notional), y: calls.map(d=>d.strike), type: 'bar', orientation: 'h', name: 'Call', marker:{color:'#10b981'} }
         ], layout, {responsive:true, displayModeBar:false});
 
-        // OI 차트도 동일 레이아웃 적용 (단, X축 타이틀만 변경)
-        const layoutOI = JSON.parse(JSON.stringify(layout)); // Deep copy
+        const layoutOI = JSON.parse(JSON.stringify(layout));
         if (!isMobile) layoutOI.xaxis.title = 'Open Interest';
 
         Plotly.newPlot('chartOI', [
