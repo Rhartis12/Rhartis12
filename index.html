@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSCC Alpha Deck</title>
+    <meta name="description" content="OSCC Alpha Deck - Real-time options GEX, Max Pain, Whale tracking dashboard">
+    <meta property="og:title" content="OSCC Alpha Deck">
+    <meta property="og:description" content="Options Strategy & GEX Analysis Dashboard - Max Pain, Whale Alerts, Expected Move">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* --- 테마 설정 --- */
@@ -85,6 +90,7 @@
 <div class="container">
     <header>
         <h1>🚀 OSCC Alpha Deck</h1>
+        <span id="lastUpdate" style="font-size: 12px; color: #64748b;">Last Update: Loading...</span>
         <select id="tickerSelect"></select>
     </header>
 
@@ -156,6 +162,12 @@
     </div>
 </div>
 
+<footer style="text-align: center; padding: 30px; color: #475569; font-size: 12px; border-top: 1px solid #334155; margin-top: 40px;">
+    <p>OSCC Alpha Deck — Options Strategy & GEX Analysis Dashboard</p>
+    <p>Data updates daily at 00:00 KST (T+1 OI from Yahoo Finance) | Powered by GitHub Pages</p>
+    <p style="margin-top: 10px;">⚠️ This is not financial advice. For educational purposes only.</p>
+</footer>
+
 <script>
     let rawData = [], aiData = {}, summaryData = [], whaleData = [];
     let currentTF = 'curr'; 
@@ -175,6 +187,10 @@
             summaryData = await resSum.json();
             whaleData = await resWhale.json();
 
+            if(summaryData.length > 0) {
+                document.getElementById('lastUpdate').innerText = `📅 Last Update: ${summaryData[0].analysis_date} (T+1 OI)`;
+            }
+
             const tickers = [...new Set(rawData.map(d => d.ticker))].sort();
             const sel = document.getElementById('tickerSelect');
             tickers.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.text = `$${t}`; sel.appendChild(opt); });
@@ -182,7 +198,13 @@
             sel.addEventListener('change', () => updateRibbon(true));
             if(tickers.length > 0) updateRibbon(true); 
 
-        } catch(e) { console.error(e); }
+        } catch(e) {
+            console.error(e);
+            document.getElementById('aiBody').innerHTML = 
+                '❌ <strong>Failed to load data.</strong><br><br>' +
+                'Data may not be available yet. The engine runs daily at 00:00 KST.<br>' +
+                'Please try again later or check the <a href="https://github.com/Rhartis12/rhartis12" style="color: #3b82f6;">repository</a>.';
+        }
     }
 
     function updateRibbon(reset) {
